@@ -1,0 +1,16 @@
+For each batch:
+  1) POSITIVE PHASE
+     v (data frames)  ──► Forward GEMV (Wᵀv) ─► Sigmoid ─► p(h|v)
+                         └────────────────────► OuterProd Accum (+)= v · p(h)ᵀ
+
+  2) RECONSTRUCTION
+     p(h|v)           ──► Recon GEMV (W h) ─► ṽ  (Gaussian mean, clamp)
+
+  3) NEGATIVE PHASE
+     ṽ               ──► Forward GEMV (Wᵀṽ) ─► Sigmoid ─► p(h̃|ṽ)
+                         └────────────────────► OuterProd Accum (−)= ṽ · p(h̃)ᵀ
+
+  4) UPDATE
+     ΔW = AccPos − AccNeg
+     W ← (1−λ)·W + μ·ΔW_prev + η·ΔW       (fixed-point, saturated)
+     (Biases updated similarly)
