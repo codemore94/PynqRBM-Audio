@@ -1,0 +1,15 @@
+AXI register extensions (for training)
+
+Add to your AXI-Lite map:
+
+Offset	Name	Purpose
+0x50	MODE	0=infer, 1=train
+0x54	BATCH_SIZE	N (e.g., 32/64)
+0x58	LR_MOM_WD	[15:0]=η, [31:16]=μ; put λ at 0x5C
+0x5C	WEIGHT_DECAY	λ (Q0.16)
+0x60	EPOCHS	count (if you let HW loop)
+0x64	DATA_BASE_LO/HI	DDR addr of training frames
+0x6C	LABEL_BASE_LO/HI	if training a label layer/softmax
+0x74	SHUFFLE_SEED	optional
+0x78	ACCUM_CLEAR	W1C to clear accumulators
+0x7C	STATS	overflow flags, nan/inf detect
