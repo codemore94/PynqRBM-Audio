@@ -1,0 +1,28 @@
+              ┌──────────────────────────────────────────────────────┐
+  clk,reset → │  clk_wiz + proc_sys_reset                           │
+              └──────────┬───────────────┬───────────────┬──────────┘
+                         │               │               │
+                    ┌────▼────┐     ┌───▼─────┐     ┌───▼─────┐
+AXI Master (M)      │PicoRV32 │     │UARTLite │     │AXI Timer│
+(32-bit AXI-Lite)   │(IRQ[2:0])     └──────────┘     └──────────┘
+         │          └────┬────┘
+         │               │AXI-Lite S00
+         │          ┌────▼──────────────────────────┐
+         └─────────▶│        AXI Interconnect       │
+                    │   M00: AXI BRAM Ctrl          │
+                    │   M01: UARTLite               │
+                    │   M02: AXI Timer              │
+                    │   M03: RBM AXI (your IP)      │
+                    └────┬───────────────┬──────────┘
+                         │               │
+                    ┌────▼───────┐  ┌───▼────────────────┐
+                    │AXI BRAM Ctl│  │   RBM Accelerator   │
+                    └────┬───────┘  │  (top_axi_rbm)      │
+                         │          │  AXI-Lite regs      │
+                   ┌─────▼──────┐  │  AXIS In/Out        │
+                   │ blk_mem_gen│  │  IRQ (DONE/BATCH)   │
+                   └────────────┘  └─────────────────────┘
+
+Optional (data plane):
+  PS HP/GP AXI  ──►  AXI DMA  ──► RBM AXIS-S (frames)
+  RBM AXIS-M  ──►  AXI DMA  ──► PS DDR (logits/traces)
