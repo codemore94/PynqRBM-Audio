@@ -13,3 +13,4 @@ internally for SOC but possibly outside the SOC there could be at least in the b
 Also the choices for SW are still to be answered, Risc-V softcore could be very light, so maybe even MMU does not exist and therefore instead of Linux FreeRTOS or other RTOS is 
 favored. Still ARM itself would easily run even generic Linux distribution, that could communicate with host computer. 
 
+Under the development I have utilized OpenAI's GPT-5 Plus, but I would not call this still as vibe coding :D
