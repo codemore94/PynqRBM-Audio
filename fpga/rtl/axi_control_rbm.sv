@@ -40,4 +40,7 @@ module rbm_ctrl_axi_lite #(
   output logic           irq
 );
 // … standard AXI-Lite reg file implementation; raise irq when done & ie_done …
+if(done && ie_done)begin
+   irq <= 1'b1;
+end
 endmodule
