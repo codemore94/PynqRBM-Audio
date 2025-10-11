@@ -1,0 +1,43 @@
+┌──────────────────────────────────────────────────────────────┐
+│ RBM Accelerator (AXI IP)                                     │
+│                                                              │
+│ AXI-Lite Regs  ─ control/status, dims, tiles, η/μ/λ, seeds   │
+│    │                                                      IRQ│
+│    ▼                                                         │
+│  ┌────────────────────────────────────────────────────────┐  │
+│  │  Trainer/Compute Controller (FSM or micro-scheduler)   │  │
+│  │  • Modes: INFER / TRAIN (CD-1)                         │  │
+│  │  • Batch, tiling loops, DMA kicks                      │  │
+│  └──────────────┬───────────────────────┬─────────────────┘  │
+│                 │                       │                    │
+│      ┌──────────▼──────────┐    ┌───────▼──────────┐         │
+│      │  Forward GEMV (Wᵀv) │    │ Recon GEMV (Wh)  │         │
+│      │  • PAR MAC lanes    │    │  • PAR MAC lanes │         │
+│      └───────┬─────────────┘    └────────┬────────┘         │
+│              │                           │                  │
+│      ┌───────▼─────────┐         ┌───────▼─────────┐        │
+│      │  Sigmoid LUT    │         │  Clamp/Scale     │        │
+│      │  (Q6.10→Q0.16)  │         │  (Gaussian vis.) │        │
+│      └───────┬─────────┘         └────────┬────────┘        │
+│              │ probs p(h|v)                │  ṽ             │
+│     ┌────────▼────────┐                    │                 │
+│     │  (optional) RNG │                    │                 │
+│     │  LFSR Sampler   │                    │                 │
+│     └────────┬────────┘                    │                 │
+│              │  h / p(h)                   │                 │
+│     ┌────────▼────────────┐      ┌─────────▼─────────────┐   │
+│     │ Outer-Product Accum │      │ Outer-Product Accum   │   │
+│     │  + Accum BRAM (pos) │      │  + Accum BRAM (neg)   │   │
+│     └────────┬────────────┘      └─────────┬─────────────┘   │
+│              └──────────────┬──────────────┘                 │
+│                             ▼                                │
+│                   ┌─────────────────────┐                    │
+│                   │  SGD/Update Tile    │                    │
+│                   │  (η, μ, λ; sat)     │                    │
+│                   └──────────┬──────────┘                    │
+│                              │                                │
+│                Weights BRAM/Cache  ◄────────  PS DDR (DMA)    │
+│                                                              │
+│ AXIS-S (frames in)  ─────────────► Ingress FIFO              │
+│ AXIS-M (logits out) ◄───────────── Egress FIFO (optional)    │
+└──────────────────────────────────────────────────────────────┘
