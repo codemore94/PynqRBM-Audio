@@ -2,7 +2,7 @@
 # This packages top_axi_rbm as an AXI4-Lite IP for block design use.
 
 
-set proj_name bolt_ear
+set proj_name pynq_audio_rbm
 set ip_name rbm_trainer_axi
 set top_name top_axi_rbm
 
