@@ -1,16 +1,32 @@
-# PynqRBM-Audio
-Restricted Boltzmann Machine Neural Networks Accelerator to recognize downsampled audio samples.
-It is meant to be an awesome project, combining the best of RISC-V and Restricted Boltzmann Machine Neural Networks acceleration on Pynq Soc-Fpga.  
-This will be https://github.com/codemore94/limits_of_pynq_zynq in cleaner and more clever form. 
+Phase 0 — Prep your workspace
 
-Basic concept: Real Hardware consisting of AMD Xilinx's Pynq Zynq D1. On fpga there is implemented both Neural Networks Accelerator and a tiny Risc-V-processor/microcontroller.
-Of course also Zynq's Arm exist, it is still question which parts of software should be executed on  ARM hardcore and which on RISC-V softcore on FPGA. 
+1.Create the repo and folders:
+mkdir -p PynqAudioRBM/{fpga/{rtl,bd,mem,sim/scripts},sw_rv/{app,bsp,FreeRTOS-Kernel},training}
+# paste the canvas files into those paths, preserving names
 
-If possible also part of training is done on fpga-side, but since memory bandwith really becomes as bottleneck, most of training for big sized datasets should be executed by CPU
-or GPU. 
-The communication between FPGA accelerated Neural Networks, Risc-V softcore, ARM and host computer will be exciting :) Most likely AXI-Stream is the best choice for communication 
-internally for SOC but possibly outside the SOC there could be at least in the beginning UART or SPI. 
-Also the choices for SW are still to be answered, Risc-V softcore could be very light, so maybe even MMU does not exist and therefore instead of Linux FreeRTOS or other RTOS is 
-favored. Still ARM itself would easily run even generic Linux distribution, that could communicate with host computer. 
+2.Tooling you need installed:
 
-Under the development I have utilized OpenAI's GPT-5 Plus, but I would not call this still as vibe coding :D
+Vivado 2023.1 
+
+RISC-V GCC (riscv32-unknown-elf-*)
+
+Python 3.10+ with numpy
+
+3.Phase 1 — Generate lookup tables & golden vectors
+
+From repo root:python training/make_sigmoid_lut.py
+python training/make_golden_mem.py
+
+Done when: fpga/mem/sigmoid_q6p10_q0p16.mem and fpga/sim/vectors/{v_mem.mem,w_col.mem,bias.mem,acc_shift.mem} exist.
+
+Phase 2 — Simulate the minimal RBM core
+
+Open your simulator (Vivado XSim is fine) and run the provided TB:
+
+# inside Vivado tcl console OR shell
+cd fpga
+# compile + simulate tb_rbm_core_min.sv (adjust if using another sim)
+xvlog -sv rtl/sigmoid_lut.sv rtl/rbm_core_min.sv sim/tb_rbm_core_min.sv
+xelab tb_rbm_core_min -s tb
+xsim tb -run all
+Expect: it prints a p_j=0x.... line and finishes without errors.
