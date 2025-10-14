@@ -2,7 +2,6 @@ Phase 0 — Prep your workspace
 
 1.Create the repo and folders:
 mkdir -p PynqAudioRBM/{fpga/{rtl,bd,mem,sim/scripts},sw_rv/{app,bsp,FreeRTOS-Kernel},training}
-# paste the canvas files into those paths, preserving names
 
 2.Tooling you need installed:
 
@@ -25,7 +24,7 @@ Open your simulator (Vivado XSim is fine) and run the provided TB:
 
 # inside Vivado tcl console OR shell
 cd fpga
-# compile + simulate tb_rbm_core_min.sv (adjust if using another sim)
+//compile + simulate tb_rbm_core_min.sv (adjust if using another sim)
 xvlog -sv rtl/sigmoid_lut.sv rtl/rbm_core_min.sv sim/tb_rbm_core_min.sv
 xelab tb_rbm_core_min -s tb
 xsim tb -run all
