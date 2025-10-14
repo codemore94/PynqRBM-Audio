@@ -1,3 +1,6 @@
 [submodule "picorv32"]
 	path = picorv32
 	url = https://github.com/YosysHQ/picorv32.git
+[submodule "sw_rv/FreeRTOS-Kernel"]
+	path = sw_rv/FreeRTOS-Kernel
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
