@@ -4,3 +4,6 @@
 [submodule "sw_rv/FreeRTOS-Kernel"]
 	path = sw_rv/FreeRTOS-Kernel
 	url = https://github.com/FreeRTOS/FreeRTOS-Kernel
+[submodule "sw/PetaLinux"]
+	path = sw/PetaLinux
+	url = https://github.com/Xilinx/PetaLinux.git
