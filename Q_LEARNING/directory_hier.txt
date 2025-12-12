@@ -1,0 +1,28 @@
+pynq_rbm_rl/
+├── README.md
+├── common/
+│   ├── config.py
+│   └── fixedpoint.py
+├── hw/
+│   ├── rtl/
+│   │   ├── qrbm_core.sv            # RBM free-energy -ydin (FPGA)
+│   │   └── qrbm_bram_if.sv         # (valinnainen) BRAM/AXI-liitännät
+│   ├── tb/
+│   │   └── tb_qrbm_core.sv         # testbench CPU-goldenilla
+│   └── scripts/
+│       ├── synth_qrbm.tcl          # synteesi/implementation
+│       └── export_pynq_overlay.tcl # wrapper + bit/hwh generointi
+├── sw/
+│   ├── cpu_ref/
+│   │   ├── qrbm_cpu.py             # QRBM PyTorch/NumPy -malli
+│   │   ├── env_bandit.py           # yksinkertainen contextual bandit -ympäristö
+│   │   └── train_cpu.py            # Q-learning CPU:lla
+│   └── pynq/
+│       ├── qrbm_accel.py           # Pynq-ajuri FPGA-kiihdyttimelle
+│       └── train_pynq.py           # sama Q-learning, mutta käyttää qrbm_accel:ia
+├── notebooks/
+│   └── 01_exploration.ipynb        # vapaa kokeilu, ei pakollinen
+└── data/
+    └── logs/
+        ├── cpu_training.log
+        └── pynq_training.log
