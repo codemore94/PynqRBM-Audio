@@ -12,6 +12,6 @@ module sigmoid_lut #(
   // … clamp x to range and shift …
   // ROM init from .mem file
   logic [OUT_W-1:0] rom [0:(1<<ADDR_W)-1];
-  initial $readmemh("sigmoid_q6p10_q0p16.mem", rom);
+  //initial $readmemh("sigmoid_q6p10_q0p16.mem", rom);
   always_ff @(posedge clk) y <= rom[addr];
 endmodule
