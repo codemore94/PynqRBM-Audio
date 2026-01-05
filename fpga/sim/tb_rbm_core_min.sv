@@ -16,10 +16,11 @@ module tb_rbm_core_min;
    // Clock
    always #5 clk=~clk; // 100 MHz
 
-
+	string vecdir;
    initial begin
-      //$readmemh("vectors/v_mem.mem", v_mem);
-      //$readmemh("vectors/w_col.mem", w_col);
+      if (!$value$plusargs("VECDIR=%s", vecdir)) vecdir = "vectors";
+		$readmemh("vectors/v_mem.mem", v_mem);
+      $readmemh("vectors/w_col.mem", w_col);
       //$readmemh("vectors/bias.mem", b_j);
       // LUT must exist at ../mem/sigmoid_q6p10_q0p16.mem relative to DUT
       repeat(5) @(posedge clk);
