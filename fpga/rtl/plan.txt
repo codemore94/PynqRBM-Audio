@@ -1,0 +1,13 @@
+2) Milestones (first week)
+
+zero: rbm_core+tb
+
+Day 1–2: Build Vivado project, synthesize a minimal PL design: AXI-Lite regs + AXIS loopback + UART Lite + Timer + BRAM.
+-----------------
+Day 3: Integrate rbm_core.sv skeleton with sigmoid LUT and a toy 8-bit MAC path; simulate with a fixed vector.
+-------------
+Day 4: Drop in PicoRV32 (or VexRiscv), BRAM for code/data, UART Lite + Timer; run a “Hello, FreeRTOS” that blinks a counter on UART.
+
+Day 5–6: Wire RISC-V to accelerator regs + AXIS FIFOs; feed one frame from RV to RBM core; print logits.
+
+Day 7: Optional PS/PYNQ DMA feed; or keep RV-driven AXIS for first demo.
