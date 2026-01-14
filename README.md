@@ -22,10 +22,12 @@ Phase 2 — Simulate the minimal RBM core
 
 Open your simulator (Vivado XSim is fine) and run the provided TB:
 
-# inside Vivado tcl console OR shell
+inside Vivado tcl console OR shell
 cd fpga
 //compile + simulate tb_rbm_core_min.sv (adjust if using another sim)
 xvlog -sv rtl/sigmoid_lut.sv rtl/rbm_core_min.sv sim/tb_rbm_core_min.sv
 xelab tb_rbm_core_min -s tb
 xsim tb -run all
 Expect: it prints a p_j=0x.... line and finishes without errors.
+
+Actually one can use as well Intel/Altera's Modelsim in the testbenching, in the subdirectory simulation_evolution_modelsim there are screenshots of the current state of the testbench for rbm_core_min.sv-module. (IDLE->ACC->ACT->IDLE)-state transitions are succesfull by current testbench (at least for Modelsim :D)
