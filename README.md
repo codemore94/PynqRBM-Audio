@@ -1,7 +1,7 @@
 Phase 0 — Prep your workspace
 
 1.Create the repo and folders:
-mkdir -p PynqAudioRBM/{fpga/{rtl,bd,mem,sim/scripts},sw_rv/{app,bsp,FreeRTOS-Kernel},training}
+mkdir -p PynqAudio-RBM/{fpga/{rtl,bd,mem,sim/scripts},sw_rv/{app,bsp,FreeRTOS-Kernel},training}
 
 2.Tooling you need installed:
 
@@ -35,7 +35,7 @@ Actually one can use as well Intel/Altera's Modelsim in the testbenching, in the
 Basic
       vlib work
 
-      vlog -sv rtl/compilable/*.sv
+      vlog -sv PynqRBM-Audio/fpga/rtl/compilable/*.sv
 
       vsim -voptargs=+acc work.tb_rbm_core_min
 
