@@ -31,3 +31,10 @@ xsim tb -run all
 Expect: it prints a p_j=0x.... line and finishes without errors.
 
 Actually one can use as well Intel/Altera's Modelsim in the testbenching, in the subdirectory simulation_evolution_modelsim there are screenshots of the current state of the testbench for rbm_core_min.sv-module. (IDLE->ACC->ACT->IDLE)-state transitions are succesfull by current testbench (at least for Modelsim :D)
+
+Basic vlib work
+      vlog -sv rtl/compilable/*.sv
+      vsim -voptargs=+acc work.tb_rbm_core_min
+      add wave -r sim:/tb_rbm_core_min/*
+      run -all
+should be enough for Modelsim.
