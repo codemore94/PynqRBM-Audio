@@ -17,15 +17,20 @@ module rbm_core_min #(
    typedef enum logic [1:0] {IDLE, ACC, ACT} st_t; st_t st;
    assign busy = (st!=IDLE);
    logic [15:0] sig_y;
+	//logic [31:0] tmp;
    sigmoid_lut u_sig(.clk(clk), .x(acc[21:6]), .y(sig_y)); // crude mapping
 
    always_ff @(posedge clk) begin
       if (rst) begin st<=IDLE; i<=0; acc<=0; end
       else begin
 	 case(st)
-           IDLE: if (start) begin i<=0; acc<=b_j; st<=ACC; end
+           IDLE: if (start) begin 
+				//tmp <= 31'b0;	
+				i<=0; acc<=b_j; st<=ACC; 
+			  end
            ACC: begin
-              acc += v_mem[i][7]*w_col[i];
+             // acc += v_mem[i][7]*w_col[i];
+				  acc <= acc + (v_mem[i][7] ? -$signed(w_col[i]) : $signed(w_col[i]));
               //logic signed [23:0] prod = $signed({{8{v_mem[i][7]}},v_mem[i]}) * $signed(w_col[i]);
               //acc <= acc + {{8{prod[23]}},prod};
               i <= i + 1;
