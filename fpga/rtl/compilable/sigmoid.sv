@@ -9,7 +9,15 @@ module sigmoid_lut #(
 );
   // address by clamping and dropping LSBs (piecewise-constant)
   logic [ADDR_W-1:0] addr;
-  // … clamp x to range and shift …
+  // Map signed input to unsigned address space by biasing and dropping LSBs.
+  // This is a generic mapping; ensure your LUT matches this convention.
+  logic signed [IN_W-1:0] x_s;
+  logic [IN_W-1:0] x_u;
+  always_comb begin
+    x_s = x;
+    x_u = x_s + (1 << (IN_W-1));
+    addr = x_u[IN_W-1 -: ADDR_W];
+  end
   // ROM init from .mem file
   logic [OUT_W-1:0] rom [0:(1<<ADDR_W)-1];
   initial $readmemh("sigmoid_q6p10_q0p16.mem", rom);
