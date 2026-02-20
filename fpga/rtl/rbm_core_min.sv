@@ -14,7 +14,7 @@ module rbm_core_min #(
 			);
    logic [15:0] i;
    logic signed [31:0] acc;
-   typedef enum logic [1:0] {IDLE, ACC, ACT} st_t; st_t st;
+   typedef enum logic [1:0] {IDLE, ACC, WAIT, ACT} st_t; st_t st;
    assign busy = (st!=IDLE);
    logic [15:0] sig_y;
 	//logic [31:0] tmp;
@@ -30,16 +30,24 @@ module rbm_core_min #(
 			  end
            ACC: begin
              // acc += v_mem[i][7]*w_col[i];
-				  acc <= acc + (v_mem[i][7] ? -$signed(w_col[i]) : $signed(w_col[i]));
+				 // acc <= acc + (v_mem[i][7] ? -$signed(w_col[i]) : $signed(w_col[i]));
+				  acc <= acc + $signed(v_mem[i]) * $signed(w_col[i]);
+
               //logic signed [23:0] prod = $signed({{8{v_mem[i][7]}},v_mem[i]}) * $signed(w_col[i]);
               //acc <= acc + {{8{prod[23]}},prod};
               i <= i + 1;
-              if (i==I_DIM-1) st<=ACT;
+              if (i==I_DIM-1) st<=WAIT;
            end
+           WAIT: begin
+              // Wait one cycle for sigmoid LUT registered output to reflect final acc
+              st<=ACT;
+           end//wait state is rewritten by codex (ai experiment)
            ACT: begin
-              p_j <= sig_y; st<=IDLE;
+              p_j <= sig_y; 
+				  st<=IDLE;
            end
 	 endcase
       end
    end
+	//assign p_j = sig_y;
 endmodule
