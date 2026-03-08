@@ -43,6 +43,9 @@ module rbm_ctrl_axi_lite #(
   input  logic           stat_busy, stat_done, stat_err,
   input  logic           stat_batch_done, stat_epoch_done,
   input  logic [31:0]    stat_flags,
+  input  logic [31:0]    stat_cycles,
+  input  logic [31:0]    stat_updates,
+  input  logic [31:0]    stat_stalls,
   // IRQ
   output logic           irq,
   input  logic           ie_done, ie_batch, ie_epoch
@@ -59,7 +62,8 @@ module rbm_ctrl_axi_lite #(
   // 0x18 SCALE_SHIFT, 0x1C RNG_SEED, 0x20 INT_EN, 0x24 INT_STATUS,
   // 0x28 TILE_IH, 0x2C BATCH_SIZE, 0x30 EPOCHS, 0x34 LR_MOM, 0x38 WEIGHT_DECAY,
   // 0x3C STATS, 0x40 W_BASE_LO, 0x44 W_BASE_HI, 0x48 B_VIS_BASE, 0x4C B_HID_BASE,
-  // 0x50 DATA_BASE_LO, 0x54 DATA_BASE_HI, 0x68 ACCUM_CTRL,
+  // 0x50 DATA_BASE_LO, 0x54 DATA_BASE_HI, 0x58 HW_VERSION, 0x5C PERF_CYCLES,
+  // 0x60 PERF_UPDATES, 0x64 PERF_STALLS, 0x68 ACCUM_CTRL,
   // 0x6C MEM_ADDR, 0x70 MEM_WDATA, 0x74 MEM_RDATA, 0x78 MEM_CTRL
 
   // Simple AXI-Lite read/write with internal address capture.
@@ -78,6 +82,7 @@ module rbm_ctrl_axi_lite #(
   logic [31:0] REG_W_BASE_LO, REG_W_BASE_HI, REG_B_VIS_BASE, REG_B_HID_BASE;
   logic [31:0] REG_DATA_BASE_LO, REG_DATA_BASE_HI, REG_ACCUM_CTRL;
   logic [31:0] REG_MEM_ADDR, REG_MEM_WDATA, REG_MEM_CTRL;
+  localparam logic [31:0] HW_VERSION = 32'h0001_0000;
 
   assign i_dim       = REG_I_DIM[15:0];
   assign h_dim       = REG_H_DIM[15:0];
@@ -222,6 +227,10 @@ module rbm_ctrl_axi_lite #(
           6'h13: S_RDATA <= REG_B_HID_BASE;
           6'h14: S_RDATA <= REG_DATA_BASE_LO;
           6'h15: S_RDATA <= REG_DATA_BASE_HI;
+          6'h16: S_RDATA <= HW_VERSION;
+          6'h17: S_RDATA <= stat_cycles;
+          6'h18: S_RDATA <= stat_updates;
+          6'h19: S_RDATA <= stat_stalls;
           6'h1A: S_RDATA <= REG_ACCUM_CTRL;
           6'h1B: S_RDATA <= REG_MEM_ADDR;
           6'h1C: S_RDATA <= REG_MEM_WDATA;

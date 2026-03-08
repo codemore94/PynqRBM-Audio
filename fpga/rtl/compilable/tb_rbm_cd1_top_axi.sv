@@ -92,6 +92,10 @@ module tb_rbm_cd1_top_axi;
   localparam REG_EPOCHS      = 32'h30;
   localparam REG_LR_MOM      = 32'h34;
   localparam REG_WD          = 32'h38;
+  localparam REG_HW_VERSION  = 32'h58;
+  localparam REG_PERF_CYCLES = 32'h5C;
+  localparam REG_PERF_UPD    = 32'h60;
+  localparam REG_PERF_STALL  = 32'h64;
   localparam REG_MEM_ADDR    = 32'h6C;
   localparam REG_MEM_WDATA   = 32'h70;
   localparam REG_MEM_RDATA   = 32'h74;
@@ -114,8 +118,16 @@ module tb_rbm_cd1_top_axi;
     end
   endtask
 
+  function automatic [31:0] mem_addr_2d(input [15:0] i_idx, input [15:0] h_idx);
+    begin
+      mem_addr_2d = {h_idx, i_idx};
+    end
+  endfunction
+
   integer i, h;
   reg [31:0] rdata;
+  reg [31:0] perf_cycles, perf_updates, perf_stalls;
+  localparam integer EXPECTED_UPDATES = (I_DIM * H_DIM) + I_DIM + H_DIM;
 
   initial begin
     // init AXI defaults
@@ -127,6 +139,11 @@ module tb_rbm_cd1_top_axi;
     repeat(5) @(posedge clk);
     rstn = 1;
     repeat(5) @(posedge clk);
+
+    axi_read(REG_HW_VERSION, rdata);
+    if (rdata !== 32'h0001_0000) begin
+      $fatal(1, "HW_VERSION mismatch: got 0x%08x exp 0x00010000", rdata);
+    end
 
     // program params
     axi_write(REG_I_DIM, I_DIM);
@@ -149,15 +166,16 @@ module tb_rbm_cd1_top_axi;
     for (i = 0; i < I_DIM; i = i + 1) begin
       mem_write(3'd2, i, 16'h0000); // b_vis
       for (h = 0; h < H_DIM; h = h + 1) begin
-        mem_write(3'd1, {h[15:0], i[15:0]}, 16'h0100); // w[i][h]
+        mem_write(3'd1, mem_addr_2d(i[15:0], h[15:0]), 16'h0100); // w[i][h]
       end
     end
     for (h = 0; h < H_DIM; h = h + 1) begin
       mem_write(3'd3, h, 16'h0000); // b_hid
     end
 
-    // start training
-    axi_write(REG_CONTROL, 32'h0000_0001);
+    // deterministic mode + start pulse (CONTROL[3]=determ, CONTROL[0]=start)
+    axi_write(REG_CONTROL, 32'h0000_0009);
+    axi_write(REG_CONTROL, 32'h0000_0008);
 
     // poll status.done (bit1)
     begin : poll_done
@@ -174,8 +192,20 @@ module tb_rbm_cd1_top_axi;
     end
 
     // read back a weight
-    mem_read(3'd1, {16'd0,16'd0}, rdata);
+    mem_read(3'd1, mem_addr_2d(16'd0, 16'd0), rdata);
     $display("w[0][0]=0x%08x", rdata);
+
+    axi_read(REG_PERF_CYCLES, perf_cycles);
+    axi_read(REG_PERF_UPD, perf_updates);
+    axi_read(REG_PERF_STALL, perf_stalls);
+    $display("perf cycles=%0d updates=%0d stalls=%0d", perf_cycles, perf_updates, perf_stalls);
+
+    if (perf_updates !== EXPECTED_UPDATES[31:0]) begin
+      $fatal(1, "Unexpected update count: got %0d exp %0d", perf_updates, EXPECTED_UPDATES);
+    end
+    if (perf_cycles == 0 || perf_stalls == 0) begin
+      $fatal(1, "Performance counters did not increment as expected");
+    end
 
     repeat(20) @(posedge clk);
     $finish;
