@@ -1,3 +1,6 @@
+location: fpga/rtl/compilable
+
+
 At a high level, this design is a small FPGA SoC that combines three parts:
 
   - A PicoRV32 soft CPU
