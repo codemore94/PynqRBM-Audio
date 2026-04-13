@@ -1,46 +1,41 @@
-Phase 0 — Prep your workspace
+At a high level, this design is a small FPGA SoC that combines three parts:
 
-1.Create the repo and folders:
-mkdir -p PynqAudio-RBM/{fpga/{rtl,bd,mem,sim/scripts},sw_rv/{app,bsp,FreeRTOS-Kernel},training}
+  - A PicoRV32 soft CPU
+  - A tiny self-attention accelerator
+  - An RBM CD-1 accelerator
 
-2.Tooling you need installed:
+  The top-level integration is in rv_rbm_soc.sv. The CPU runs firmware from on-chip RAM, then controls both accelerators
+  through memory-mapped AXI-Lite style registers.
 
-Vivado 2023.1 
+  The intended flow is:
 
-RISC-V GCC (riscv32-unknown-elf-*)
+  1. The CPU loads tokens and attention weights into the tiny-attention block.
+  2. The tiny-attention block computes a contextualized output vector.
+  3. Optionally, it runs a very small training step on a post-attention adapter.
+     This does not train full Q/K/V attention. It only updates adapter gain/bias after attention.
+  4. The CPU reads the attention output.
+  5. The CPU writes that output into the RBM visible layer memory.
+  6. The RBM block runs deterministic CD-1 style processing/training.
+  7. The RBM raises an interrupt when done.
 
-Python 3.10+ with numpy
+  So conceptually:
 
-3.Phase 1 — Generate lookup tables & golden vectors
+  - tiny_attn_top_axi = context encoder
+  - rbm_cd1_top_axi = trainable generative/associative model
+  - picorv32 = controller that sequences everything
 
-From repo root:python training/make_sigmoid_lut.py
-python training/make_golden_mem.py
+  Main files:
 
-Done when: fpga/mem/sigmoid_q6p10_q0p16.mem and fpga/sim/vectors/{v_mem.mem,w_col.mem,bias.mem,acc_shift.mem} exist.
+  - SoC integration: rv_rbm_soc.sv
+  - Tiny attention control/datapath:
+      - tiny_attn_ctrl_axi.sv
+      - tiny_attn_core.sv
+      - tiny_attn_top_axi.sv
+  - RBM control/datapath:
+      - rbm_ctrl_axi_lite3.sv
+      - rbm_cd1_top_axi.sv
+  - Firmware:
+      - sw/rv_soc_full_fw.c
 
-Phase 2 — Simulate the minimal RBM core
-
-Open your simulator (Vivado XSim is fine) and run the provided TB:
-
-inside Vivado tcl console OR shell
-cd fpga
-//compile + simulate tb_rbm_core_min.sv (adjust if using another sim)
-xvlog -sv rtl/sigmoid_lut.sv rtl/rbm_core_min.sv sim/tb_rbm_core_min.sv
-xelab tb_rbm_core_min -s tb
-xsim tb -run all
-Expect: it prints a p_j=0x.... line and finishes without errors.
-
-Actually one can use as well Intel/Altera's Modelsim in the testbenching, in the subdirectory simulation_evolution_modelsim there are screenshots of the current state of the testbench for rbm_core_min.sv-module. (IDLE->ACC->ACT->IDLE)-state transitions are succesfull by current testbench (at least for Modelsim :D)
-
-Basic
-      vlib work
-
-      vlog -sv PynqRBM-Audio/fpga/rtl/compilable/*.sv
-
-      vsim -voptargs=+acc work.tb_rbm_core_min
-
-      add wave -r sim:/tb_rbm_core_min/*
-
-      run -all
-
-should be enough for Modelsim.
+  In one sentence: this is a firmware-controlled FPGA system where tiny attention produces context features and the RBM
+  consumes them for learning/inference.
