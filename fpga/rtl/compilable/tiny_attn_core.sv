@@ -29,6 +29,8 @@ module tiny_attn_core #(
 );
   localparam logic [15:0] MAX_SEQ_U16 = MAX_SEQ_LEN;
   localparam logic [15:0] MAX_D_U16   = MAX_D_MODEL;
+  localparam logic [15:0] ADAPT_ROW_GAIN = 16'hfffe;
+  localparam logic [15:0] ADAPT_ROW_BIAS = 16'hffff;
 
   typedef enum logic [3:0] {
     ST_IDLE,
@@ -48,11 +50,14 @@ module tiny_attn_core #(
   logic signed [7:0] wv_mem    [0:MAX_D_MODEL-1][0:MAX_D_MODEL-1];
   logic signed [7:0] wo_mem    [0:MAX_D_MODEL-1][0:MAX_D_MODEL-1];
   logic signed [15:0] out_mem  [0:MAX_SEQ_LEN-1][0:MAX_D_MODEL-1];
+  logic signed [15:0] target_mem [0:MAX_SEQ_LEN-1][0:MAX_D_MODEL-1];
   logic [15:0] attn_mat        [0:MAX_SEQ_LEN-1][0:MAX_SEQ_LEN-1];
   logic [15:0] attn_weight     [0:MAX_SEQ_LEN-1];
   logic signed [15:0] q_vec    [0:MAX_D_MODEL-1];
   logic signed [15:0] k_vec    [0:MAX_D_MODEL-1];
   logic signed [15:0] ctx_vec  [0:MAX_D_MODEL-1];
+  logic signed [15:0] adapter_gain [0:MAX_D_MODEL-1];
+  logic signed [15:0] adapter_bias [0:MAX_D_MODEL-1];
 
   st_t st;
 
@@ -68,6 +73,13 @@ module tiny_attn_core #(
   logic signed [63:0] score_term;
   logic signed [63:0] ctx_term;
   logic signed [63:0] out_term;
+  logic signed [15:0] raw_out_val;
+  logic signed [15:0] adapted_out_val;
+  logic signed [15:0] target_val;
+  logic signed [15:0] err_val;
+  logic signed [31:0] gain_grad;
+  logic signed [15:0] next_gain;
+  logic signed [15:0] next_bias;
 
   logic [15:0] mem_row;
   logic [15:0] mem_col;
@@ -104,6 +116,34 @@ module tiny_attn_core #(
     if (in_idx < MAX_D_U16 && out_idx < MAX_D_U16) begin
       out_term = $signed(ctx_vec[in_idx]) * $signed(wo_mem[in_idx][out_idx]);
     end
+
+    if (out_idx < MAX_D_U16) begin
+      if (st == ST_OUT_ACC)
+        raw_out_val = sat16((proj_acc + out_term) >>> 4);
+      else if (st == ST_DIRECT_STORE) begin
+        if (out_idx < active_d_head)
+          raw_out_val = ctx_vec[out_idx];
+        else
+          raw_out_val = 16'sd0;
+      end else
+        raw_out_val = 16'sd0;
+
+      adapted_out_val = sat16((($signed(raw_out_val) * $signed(adapter_gain[out_idx])) >>> 8) +
+                              $signed(adapter_bias[out_idx]));
+      target_val = (q_idx < MAX_SEQ_U16) ? target_mem[q_idx][out_idx] : 16'sd0;
+      err_val = target_val - adapted_out_val;
+      gain_grad = ($signed(err_val) * $signed(raw_out_val)) >>> 3;
+      next_gain = sat16($signed(adapter_gain[out_idx]) + $signed(gain_grad));
+      next_bias = sat16($signed(adapter_bias[out_idx]) + ($signed(err_val) >>> 1));
+    end else begin
+      raw_out_val = 16'sd0;
+      adapted_out_val = 16'sd0;
+      target_val = 16'sd0;
+      err_val = 16'sd0;
+      gain_grad = 32'sd0;
+      next_gain = 16'sd0;
+      next_bias = 16'sd0;
+    end
   end
 
   function automatic logic signed [15:0] sat16(
@@ -113,7 +153,7 @@ module tiny_attn_core #(
       if (x > 64'sd32767)
         sat16 = 16'sh7fff;
       else if (x < -64'sd32768)
-        sat16 = -16'sd32768;
+        sat16 = 16'sh8000;
       else
         sat16 = x[15:0];
     end
@@ -163,6 +203,14 @@ module tiny_attn_core #(
         mem_rdata = {{16{out_mem[mem_row][mem_col][15]}}, out_mem[mem_row][mem_col]};
       3'd6: if (mem_row < MAX_SEQ_U16 && mem_col < MAX_SEQ_U16)
         mem_rdata = {16'b0, attn_mat[mem_row][mem_col]};
+      3'd7: begin
+        if (mem_row == ADAPT_ROW_GAIN && mem_col < MAX_D_U16)
+          mem_rdata = {{16{adapter_gain[mem_col][15]}}, adapter_gain[mem_col]};
+        else if (mem_row == ADAPT_ROW_BIAS && mem_col < MAX_D_U16)
+          mem_rdata = {{16{adapter_bias[mem_col][15]}}, adapter_bias[mem_col]};
+        else if (mem_row < MAX_SEQ_U16 && mem_col < MAX_D_U16)
+          mem_rdata = {{16{target_mem[mem_row][mem_col][15]}}, target_mem[mem_row][mem_col]};
+      end
       default: mem_rdata = 32'b0;
     endcase
   end
@@ -192,6 +240,7 @@ module tiny_attn_core #(
         for (j = 0; j < MAX_D_MODEL; j = j + 1) begin
           token_mem[i][j] <= '0;
           out_mem[i][j] <= '0;
+          target_mem[i][j] <= '0;
         end
         for (j = 0; j < MAX_SEQ_LEN; j = j + 1) begin
           attn_mat[i][j] <= '0;
@@ -201,6 +250,8 @@ module tiny_attn_core #(
         q_vec[i] <= '0;
         k_vec[i] <= '0;
         ctx_vec[i] <= '0;
+        adapter_gain[i] <= 16'sh0100;
+        adapter_bias[i] <= 16'sd0;
         for (j = 0; j < MAX_D_MODEL; j = j + 1) begin
           wq_mem[i][j] <= '0;
           wk_mem[i][j] <= '0;
@@ -218,6 +269,14 @@ module tiny_attn_core #(
           3'd2: if (mem_row < MAX_D_U16 && mem_col < MAX_D_U16) wk_mem[mem_row][mem_col] <= mem_wdata[7:0];
           3'd3: if (mem_row < MAX_D_U16 && mem_col < MAX_D_U16) wv_mem[mem_row][mem_col] <= mem_wdata[7:0];
           3'd4: if (mem_row < MAX_D_U16 && mem_col < MAX_D_U16) wo_mem[mem_row][mem_col] <= mem_wdata[7:0];
+          3'd7: begin
+            if (mem_row == ADAPT_ROW_GAIN && mem_col < MAX_D_U16)
+              adapter_gain[mem_col] <= mem_wdata[15:0];
+            else if (mem_row == ADAPT_ROW_BIAS && mem_col < MAX_D_U16)
+              adapter_bias[mem_col] <= mem_wdata[15:0];
+            else if (mem_row < MAX_SEQ_U16 && mem_col < MAX_D_U16)
+              target_mem[mem_row][mem_col] <= mem_wdata[15:0];
+          end
           default: ;
         endcase
       end
@@ -248,12 +307,7 @@ module tiny_attn_core #(
             active_d_head <= (d_head == 0) ? 16'd1 :
                              ((d_head > MAX_D_U16) ? MAX_D_U16 : d_head);
             stat_busy <= 1'b1;
-            if (ctrl_mode_train) begin
-              stat_err <= 1'b1;
-              st <= ST_DONE;
-            end else begin
-              st <= ST_Q_ACC;
-            end
+            st <= ST_Q_ACC;
           end
         end
 
@@ -374,7 +428,11 @@ module tiny_attn_core #(
           proj_acc <= proj_acc + out_term;
           stat_macs <= stat_macs + 1'b1;
           if (in_idx + 1 >= active_d_head) begin
-            out_mem[q_idx][out_idx] <= sat16((proj_acc + out_term) >>> 4);
+            out_mem[q_idx][out_idx] <= adapted_out_val;
+            if (ctrl_mode_train) begin
+              adapter_gain[out_idx] <= next_gain;
+              adapter_bias[out_idx] <= next_bias;
+            end
             proj_acc <= 64'sd0;
             in_idx <= 16'd0;
             if (out_idx + 1 >= active_d_model) begin
@@ -389,10 +447,11 @@ module tiny_attn_core #(
         end
 
         ST_DIRECT_STORE: begin
-          if (out_idx < active_d_head)
-            out_mem[q_idx][out_idx] <= ctx_vec[out_idx];
-          else
-            out_mem[q_idx][out_idx] <= 16'sd0;
+          out_mem[q_idx][out_idx] <= adapted_out_val;
+          if (ctrl_mode_train) begin
+            adapter_gain[out_idx] <= next_gain;
+            adapter_bias[out_idx] <= next_bias;
+          end
 
           if (out_idx + 1 >= active_d_model) begin
             out_idx <= 16'd0;

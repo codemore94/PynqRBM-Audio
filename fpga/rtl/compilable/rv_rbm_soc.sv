@@ -7,7 +7,12 @@ module rv_rbm_soc #(
   parameter [31:0]  STACKADDR = 4*MEM_WORDS,
   parameter [31:0]  PROGADDR_RESET = 32'h0000_0000,
   parameter [31:0]  PROGADDR_IRQ = 32'h0000_0010,
-  parameter integer UART_DIV = 100
+  parameter integer UART_DIV = 100,
+  parameter integer RBM_I_DIM = 64,
+  parameter integer RBM_H_DIM = 64,
+  parameter integer ATTN_MAX_SEQ_LEN = 8,
+  parameter integer ATTN_MAX_D_MODEL = 8,
+  parameter FW_HEX = "sw/rv_soc_fw.hex"
 ) (
   input  logic clk,
   input  logic resetn,
@@ -20,6 +25,8 @@ module rv_rbm_soc #(
   localparam [31:0] TIMER_BASE    = 32'h1000_1000;
   localparam [31:0] RBM_BASE      = 32'h4000_0000;
   localparam [31:0] RBM_END       = 32'h4000_0100;
+  localparam [31:0] ATTN_BASE     = 32'h4000_1000;
+  localparam [31:0] ATTN_END      = 32'h4000_1100;
 
   logic        mem_valid;
   logic        mem_instr;
@@ -32,11 +39,13 @@ module rv_rbm_soc #(
   logic [31:0] irq;
   logic timer_irq_pending;
   logic timer_irq_en;
+  logic attn_irq;
 
   always_comb begin
     irq = 32'b0;
     irq[0] = timer_irq_en && timer_irq_pending;
     irq[1] = rbm_irq;
+    irq[2] = attn_irq;
   end
 
   picorv32 #(
@@ -62,13 +71,14 @@ module rv_rbm_soc #(
     .irq(irq)
   );
 
-  logic ram_sel, uart_div_sel, uart_dat_sel, timer_sel, rbm_sel;
+  logic ram_sel, uart_div_sel, uart_dat_sel, timer_sel, rbm_sel, attn_sel;
   always_comb begin
     ram_sel      = mem_valid && (mem_addr < RAM_END);
     uart_div_sel = mem_valid && (mem_addr == UART_BASE + 32'h0);
     uart_dat_sel = mem_valid && (mem_addr == UART_BASE + 32'h4);
     timer_sel    = mem_valid && (mem_addr >= TIMER_BASE) && (mem_addr < TIMER_BASE + 32'h14);
     rbm_sel      = mem_valid && (mem_addr >= RBM_BASE) && (mem_addr < RBM_END);
+    attn_sel     = mem_valid && (mem_addr >= ATTN_BASE) && (mem_addr < ATTN_END);
   end
 
   logic [31:0] ram [0:MEM_WORDS-1];
@@ -88,12 +98,17 @@ module rv_rbm_soc #(
     end
   end
 
+// synthesis translate_off
   initial begin
     if ($test$plusargs("NO_FW")) begin
-      // Keep zero-initialized memory.
+      // Keep zero-initialized memory in simulation when requested.
     end else begin
-      $readmemh("sw/rv_soc_fw.hex", ram);
+      $readmemh(FW_HEX, ram);
     end
+  end
+// synthesis translate_on
+  initial begin
+    $readmemh(FW_HEX, ram);
   end
 
   logic [31:0] uart_div_do, uart_dat_do;
@@ -166,6 +181,13 @@ module rv_rbm_soc #(
 
   logic rbm_req_done, rbm_req_ready;
   logic [31:0] rbm_req_rdata;
+  logic [31:0] attn_awaddr, attn_wdata, attn_araddr, attn_rdata;
+  logic [3:0]  attn_wstrb;
+  logic attn_awvalid, attn_awready, attn_wvalid, attn_wready;
+  logic [1:0] attn_bresp, attn_rresp;
+  logic attn_bvalid, attn_bready, attn_arvalid, attn_arready, attn_rvalid, attn_rready;
+  logic attn_req_done, attn_req_ready;
+  logic [31:0] attn_req_rdata;
 
   rbm_axil_bridge u_rbm_bridge (
     .clk(clk),
@@ -198,8 +220,8 @@ module rv_rbm_soc #(
   );
 
   rbm_cd1_top_axi #(
-    .I_DIM(64),
-    .H_DIM(64)
+    .I_DIM(RBM_I_DIM),
+    .H_DIM(RBM_H_DIM)
   ) u_rbm (
     .ACLK(clk),
     .ARESETn(resetn),
@@ -223,6 +245,62 @@ module rv_rbm_soc #(
     .irq(rbm_irq)
   );
 
+  rbm_axil_bridge u_attn_bridge (
+    .clk(clk),
+    .resetn(resetn),
+    .req_valid(attn_sel),
+    .req_ready(attn_req_ready),
+    .req_write(|mem_wstrb),
+    .req_addr(mem_addr - ATTN_BASE),
+    .req_wdata(mem_wdata),
+    .req_wstrb(mem_wstrb),
+    .req_rdata(attn_req_rdata),
+    .req_done(attn_req_done),
+    .m_awaddr(attn_awaddr),
+    .m_awvalid(attn_awvalid),
+    .m_awready(attn_awready),
+    .m_wdata(attn_wdata),
+    .m_wstrb(attn_wstrb),
+    .m_wvalid(attn_wvalid),
+    .m_wready(attn_wready),
+    .m_bresp(attn_bresp),
+    .m_bvalid(attn_bvalid),
+    .m_bready(attn_bready),
+    .m_araddr(attn_araddr),
+    .m_arvalid(attn_arvalid),
+    .m_arready(attn_arready),
+    .m_rdata(attn_rdata),
+    .m_rresp(attn_rresp),
+    .m_rvalid(attn_rvalid),
+    .m_rready(attn_rready)
+  );
+
+  tiny_attn_top_axi #(
+    .MAX_SEQ_LEN(ATTN_MAX_SEQ_LEN),
+    .MAX_D_MODEL(ATTN_MAX_D_MODEL)
+  ) u_attn (
+    .ACLK(clk),
+    .ARESETn(resetn),
+    .S_AWADDR(attn_awaddr),
+    .S_AWVALID(attn_awvalid),
+    .S_AWREADY(attn_awready),
+    .S_WDATA(attn_wdata),
+    .S_WSTRB(attn_wstrb),
+    .S_WVALID(attn_wvalid),
+    .S_WREADY(attn_wready),
+    .S_BRESP(attn_bresp),
+    .S_BVALID(attn_bvalid),
+    .S_BREADY(attn_bready),
+    .S_ARADDR(attn_araddr),
+    .S_ARVALID(attn_arvalid),
+    .S_ARREADY(attn_arready),
+    .S_RDATA(attn_rdata),
+    .S_RRESP(attn_rresp),
+    .S_RVALID(attn_rvalid),
+    .S_RREADY(attn_rready),
+    .irq(attn_irq)
+  );
+
   logic uart_ready;
   assign uart_ready = uart_div_sel || (uart_dat_sel && !uart_dat_wait);
 
@@ -244,11 +322,14 @@ module rv_rbm_soc #(
     end else if (rbm_sel) begin
       mem_ready = rbm_req_done;
       mem_rdata = rbm_req_rdata;
+    end else if (attn_sel) begin
+      mem_ready = attn_req_done;
+      mem_rdata = attn_req_rdata;
     end else if (mem_valid) begin
       mem_ready = 1'b1;
       mem_rdata = 32'b0;
     end
   end
 
-  wire unused_ok = ^{mem_instr, rbm_req_ready, uart_ready, 1'b0};
+  wire unused_ok = ^{mem_instr, rbm_req_ready, attn_req_ready, uart_ready, 1'b0};
 endmodule

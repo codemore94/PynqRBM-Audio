@@ -91,6 +91,8 @@ module tb_tiny_attn_top_axi;
   localparam REG_MEM_WDATA   = 32'h58;
   localparam REG_MEM_RDATA   = 32'h5C;
   localparam REG_MEM_CTRL    = 32'h60;
+  localparam [15:0] ADAPT_ROW_GAIN = 16'hfffe;
+  localparam [15:0] ADAPT_ROW_BIAS = 16'hffff;
 
   function automatic [31:0] addr2d(input [15:0] row, input [15:0] col);
     begin
@@ -118,6 +120,12 @@ module tb_tiny_attn_top_axi;
   reg [31:0] rdata;
   reg [31:0] perf_cycles;
   reg [31:0] perf_macs;
+  reg [31:0] out00_before;
+  reg [31:0] out01_before;
+  reg [31:0] out10_before;
+  reg [31:0] out11_before;
+  reg [31:0] gain0_after;
+  reg [31:0] bias0_after;
 
   initial begin
     S_AWADDR = 0; S_AWVALID = 0; S_WDATA = 0; S_WSTRB = 0; S_WVALID = 0; S_BREADY = 0;
@@ -173,18 +181,22 @@ module tb_tiny_attn_top_axi;
     end
 
     mem_read(3'd5, addr2d(16'd0, 16'd0), rdata);
+    out00_before = rdata;
     if ($signed(rdata[15:0]) !== 16'sd2)
       $fatal(1, "out[0][0] mismatch: got %0d exp 2", $signed(rdata[15:0]));
 
     mem_read(3'd5, addr2d(16'd0, 16'd1), rdata);
+    out01_before = rdata;
     if ($signed(rdata[15:0]) !== 16'sd1)
       $fatal(1, "out[0][1] mismatch: got %0d exp 1", $signed(rdata[15:0]));
 
     mem_read(3'd5, addr2d(16'd1, 16'd0), rdata);
+    out10_before = rdata;
     if ($signed(rdata[15:0]) !== 16'sd1)
       $fatal(1, "out[1][0] mismatch: got %0d exp 1", $signed(rdata[15:0]));
 
     mem_read(3'd5, addr2d(16'd1, 16'd1), rdata);
+    out11_before = rdata;
     if ($signed(rdata[15:0]) !== 16'sd2)
       $fatal(1, "out[1][1] mismatch: got %0d exp 2", $signed(rdata[15:0]));
 
@@ -201,7 +213,75 @@ module tb_tiny_attn_top_axi;
     if (perf_cycles == 0 || perf_macs == 0)
       $fatal(1, "Performance counters did not increment");
 
-    $display("TINY ATTN PASS cycles=%0d macs=%0d irq=%0d", perf_cycles, perf_macs, irq);
+    // Train only the post-attention adapter toward larger targets.
+    mem_write(3'd7, addr2d(16'd0, 16'd0), 32'd6);
+    mem_write(3'd7, addr2d(16'd0, 16'd1), 32'd3);
+    mem_write(3'd7, addr2d(16'd1, 16'd0), 32'd3);
+    mem_write(3'd7, addr2d(16'd1, 16'd1), 32'd6);
+
+    axi_write(REG_CONTROL, 32'h0000_0005);
+    axi_write(REG_CONTROL, 32'h0000_0004);
+    begin : poll_train_done
+      integer t2;
+      for (t2 = 0; t2 < 2000; t2 = t2 + 1) begin
+        axi_read(REG_STATUS, rdata);
+        if (rdata[1]) begin
+          t2 = 2000;
+        end
+        @(posedge clk);
+      end
+      if (!rdata[1])
+        $fatal(1, "Timeout waiting for train DONE");
+      if (rdata[2])
+        $fatal(1, "Unexpected train ERR status");
+    end
+
+    mem_read(3'd7, addr2d(ADAPT_ROW_GAIN, 16'd0), gain0_after);
+    mem_read(3'd7, addr2d(ADAPT_ROW_BIAS, 16'd0), bias0_after);
+    if ($signed(gain0_after[15:0]) <= 16'sd256)
+      $fatal(1, "adapter gain[0] did not increase: got %0d", $signed(gain0_after[15:0]));
+    if ($signed(bias0_after[15:0]) <= 16'sd0)
+      $fatal(1, "adapter bias[0] did not increase: got %0d", $signed(bias0_after[15:0]));
+
+    axi_write(REG_CONTROL, 32'h0000_0001);
+    axi_write(REG_CONTROL, 32'h0000_0000);
+    begin : poll_reinfer_done
+      integer t3;
+      for (t3 = 0; t3 < 2000; t3 = t3 + 1) begin
+        axi_read(REG_STATUS, rdata);
+        if (rdata[1]) begin
+          t3 = 2000;
+        end
+        @(posedge clk);
+      end
+      if (!rdata[1])
+        $fatal(1, "Timeout waiting for post-train DONE");
+      if (rdata[2])
+        $fatal(1, "Unexpected post-train ERR status");
+    end
+
+    mem_read(3'd5, addr2d(16'd0, 16'd0), rdata);
+    if ($signed(rdata[15:0]) <= $signed(out00_before[15:0]))
+      $fatal(1, "out[0][0] did not move toward target: before %0d after %0d",
+        $signed(out00_before[15:0]), $signed(rdata[15:0]));
+
+    mem_read(3'd5, addr2d(16'd0, 16'd1), rdata);
+    if ($signed(rdata[15:0]) <= $signed(out01_before[15:0]))
+      $fatal(1, "out[0][1] did not move toward target: before %0d after %0d",
+        $signed(out01_before[15:0]), $signed(rdata[15:0]));
+
+    mem_read(3'd5, addr2d(16'd1, 16'd0), rdata);
+    if ($signed(rdata[15:0]) <= $signed(out10_before[15:0]))
+      $fatal(1, "out[1][0] did not move toward target: before %0d after %0d",
+        $signed(out10_before[15:0]), $signed(rdata[15:0]));
+
+    mem_read(3'd5, addr2d(16'd1, 16'd1), rdata);
+    if ($signed(rdata[15:0]) <= $signed(out11_before[15:0]))
+      $fatal(1, "out[1][1] did not move toward target: before %0d after %0d",
+        $signed(out11_before[15:0]), $signed(rdata[15:0]));
+
+    $display("TINY ATTN PASS cycles=%0d macs=%0d irq=%0d gain0=%0d bias0=%0d",
+      perf_cycles, perf_macs, irq, $signed(gain0_after[15:0]), $signed(bias0_after[15:0]));
     repeat (10) @(posedge clk);
     $finish;
   end

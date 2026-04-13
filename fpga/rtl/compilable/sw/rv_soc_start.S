@@ -1,10 +1,60 @@
+#define regnum_q0 0
+#define regnum_q1 1
+#define regnum_q2 2
+#define regnum_q3 3
+
+#define regnum_x0 0
+#define regnum_x1 1
+#define regnum_x2 2
+#define regnum_x10 10
+
+#define r_type_insn(_f7, _rs2, _rs1, _f3, _rd, _opc) \
+.word (((_f7) << 25) | ((_rs2) << 20) | ((_rs1) << 15) | ((_f3) << 12) | ((_rd) << 7) | ((_opc) << 0))
+
+#define picorv32_getq_insn(_rd, _qs) \
+r_type_insn(0b0000000, 0, regnum_ ## _qs, 0b100, regnum_ ## _rd, 0b0001011)
+
+#define picorv32_setq_insn(_qd, _rs) \
+r_type_insn(0b0000001, 0, regnum_ ## _rs, 0b010, regnum_ ## _qd, 0b0001011)
+
+#define picorv32_retirq_insn() \
+r_type_insn(0b0000010, 0, 0, 0b000, 0, 0b0001011)
+
+#define picorv32_maskirq_insn(_rd, _rs) \
+r_type_insn(0b0000011, 0, regnum_ ## _rs, 0b110, regnum_ ## _rd, 0b0001011)
+
+#define picorv32_waitirq_insn(_rd) \
+r_type_insn(0b0000100, 0, 0, 0b100, regnum_ ## _rd, 0b0001011)
+
 .section .text
-.globl start
 .globl _start
+.globl start
+.globl rbm_irq_seen
+.globl soc_irq_set_mask
 
 _start:
 start:
-  # Zero-init integer registers except x0 and stack pointer (x2 from CPU reset setup).
+  // Keep the reset vector within the first 16 bytes. IRQ entry is at 0x10.
+  j boot
+  nop
+  nop
+  nop
+
+.balign 16
+irq_vec:
+  picorv32_setq_insn(q2, x1)
+  picorv32_setq_insn(q3, x2)
+  lui x1, %hi(rbm_irq_seen)
+  addi x1, x1, %lo(rbm_irq_seen)
+  picorv32_getq_insn(x2, q1)
+  sw x2, 0(x1)
+  li x2, 2
+  picorv32_maskirq_insn(x0, x2)
+  picorv32_getq_insn(x2, q3)
+  picorv32_getq_insn(x1, q2)
+  picorv32_retirq_insn()
+
+boot:
   li x1, 0
   li x3, 0
   li x4, 0
@@ -36,7 +86,9 @@ start:
   li x30, 0
   li x31, 0
 
-  # Copy .data from load image to runtime address.
+  la sp, _stack_top
+  picorv32_maskirq_insn(x0, x0)
+
   la a0, _sidata
   la a1, _sdata
   la a2, _edata
@@ -48,7 +100,6 @@ start:
   addi a1, a1, 4
   j 1b
 
-  # Zero .bss.
 2:
   la a0, _sbss
   la a1, _ebss
@@ -62,3 +113,12 @@ start:
   call main
 5:
   j 5b
+
+soc_irq_set_mask:
+  picorv32_maskirq_insn(x10, x10)
+  ret
+
+.section .bss
+.balign 4
+rbm_irq_seen:
+  .word 0

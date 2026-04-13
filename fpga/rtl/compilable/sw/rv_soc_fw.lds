@@ -5,6 +5,9 @@ MEMORY
   RAM (xrw) : ORIGIN = 0x00000000, LENGTH = 0x00004000
 }
 
+_debug_base = ORIGIN(RAM) + LENGTH(RAM) - 0x100;
+_stack_top = _debug_base;
+
 SECTIONS
 {
   .text : {
@@ -44,5 +47,11 @@ SECTIONS
   .heap : {
     . = ALIGN(4);
     _heap_start = .;
+    _heap_end = _debug_base;
+  } > RAM
+
+  .debugmon _debug_base (NOLOAD) : {
+    . = ALIGN(4);
+    . = . + 0x100;
   } > RAM
 }
