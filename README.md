@@ -1,6 +1,6 @@
 location: fpga/rtl/compilable
 
-
+Unfortunately, currently does not fit to "low-price" SOC-FPGAs like Pynq-Z1 or Cyclone V. Logic is overutilized (>300% of Cyclone V ALMs, so much stuff needs to be moved to BRAM etc. 
 At a high level, this design is a small FPGA SoC that combines three parts:
 
   - A PicoRV32 soft CPU
