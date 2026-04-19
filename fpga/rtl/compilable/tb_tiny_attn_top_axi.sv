@@ -126,6 +126,12 @@ module tb_tiny_attn_top_axi;
   reg [31:0] out11_before;
   reg [31:0] gain0_after;
   reg [31:0] bias0_after;
+  reg [31:0] fullbp_out00_before;
+  reg [31:0] fullbp_out00_after;
+  reg [31:0] wq00_after;
+  reg [31:0] wk00_after;
+  reg [31:0] wv00_after;
+  reg [31:0] wo00_after;
 
   initial begin
     S_AWADDR = 0; S_AWVALID = 0; S_WDATA = 0; S_WSTRB = 0; S_WVALID = 0; S_BREADY = 0;
@@ -279,6 +285,104 @@ module tb_tiny_attn_top_axi;
     if ($signed(rdata[15:0]) <= $signed(out11_before[15:0]))
       $fatal(1, "out[1][1] did not move toward target: before %0d after %0d",
         $signed(out11_before[15:0]), $signed(rdata[15:0]));
+
+    // Full backprop mode: update WQ/WK/WV/WO, not just the adapter.
+    axi_write(REG_CONTROL, 32'h0000_0002);
+    axi_write(REG_CONTROL, 32'h0000_0000);
+    axi_write(REG_SEQ_LEN, 32'd2);
+    axi_write(REG_D_MODEL, 32'd2);
+    axi_write(REG_D_HEAD, 32'd2);
+    axi_write(REG_SCORE_SHIFT, 32'd0);
+    axi_write(REG_NORM_BIAS, 32'd1);
+
+    mem_write(3'd0, addr2d(16'd0, 16'd0), 32'd3);
+    mem_write(3'd0, addr2d(16'd0, 16'd1), 32'd1);
+    mem_write(3'd0, addr2d(16'd1, 16'd0), 32'd1);
+    mem_write(3'd0, addr2d(16'd1, 16'd1), 32'd3);
+
+    for (r = 0; r < 2; r = r + 1) begin
+      mem_write(3'd1, addr2d(r[15:0], 16'd0), (r == 0) ? 32'd1 : 32'd0);
+      mem_write(3'd1, addr2d(r[15:0], 16'd1), (r == 1) ? 32'd1 : 32'd0);
+      mem_write(3'd2, addr2d(r[15:0], 16'd0), (r == 0) ? 32'd1 : 32'd0);
+      mem_write(3'd2, addr2d(r[15:0], 16'd1), (r == 1) ? 32'd1 : 32'd0);
+      mem_write(3'd3, addr2d(r[15:0], 16'd0), (r == 0) ? 32'd1 : 32'd0);
+      mem_write(3'd3, addr2d(r[15:0], 16'd1), (r == 1) ? 32'd1 : 32'd0);
+      mem_write(3'd4, addr2d(r[15:0], 16'd0), (r == 0) ? 32'd1 : 32'd0);
+      mem_write(3'd4, addr2d(r[15:0], 16'd1), (r == 1) ? 32'd1 : 32'd0);
+    end
+
+    mem_write(3'd7, addr2d(16'd0, 16'd0), 32'd6);
+    mem_write(3'd7, addr2d(16'd0, 16'd1), 32'd3);
+    mem_write(3'd7, addr2d(16'd1, 16'd0), 32'd3);
+    mem_write(3'd7, addr2d(16'd1, 16'd1), 32'd6);
+
+    axi_write(REG_CONTROL, 32'h0000_0009);
+    axi_write(REG_CONTROL, 32'h0000_0008);
+    begin : poll_fullbp_base
+      integer t4;
+      for (t4 = 0; t4 < 2000; t4 = t4 + 1) begin
+        axi_read(REG_STATUS, rdata);
+        if (rdata[1]) begin
+          t4 = 2000;
+        end
+        @(posedge clk);
+      end
+      if (!rdata[1])
+        $fatal(1, "Timeout waiting for fullbp baseline DONE");
+      if (rdata[2])
+        $fatal(1, "Unexpected fullbp baseline ERR status");
+    end
+
+    mem_read(3'd5, addr2d(16'd0, 16'd0), fullbp_out00_before);
+
+    repeat (16) begin
+      axi_write(REG_CONTROL, 32'h0000_002d);
+      axi_write(REG_CONTROL, 32'h0000_002c);
+      begin : poll_fullbp_train
+        integer t5;
+        for (t5 = 0; t5 < 6000; t5 = t5 + 1) begin
+          axi_read(REG_STATUS, rdata);
+          if (rdata[1]) begin
+            t5 = 6000;
+          end
+          @(posedge clk);
+        end
+        if (!rdata[1])
+          $fatal(1, "Timeout waiting for full backprop DONE");
+        if (rdata[2])
+          $fatal(1, "Unexpected full backprop ERR status");
+      end
+    end
+
+    mem_read(3'd1, addr2d(16'd0, 16'd0), wq00_after);
+    mem_read(3'd2, addr2d(16'd0, 16'd0), wk00_after);
+    mem_read(3'd3, addr2d(16'd0, 16'd0), wv00_after);
+    mem_read(3'd4, addr2d(16'd0, 16'd0), wo00_after);
+    if ((wq00_after[7:0] == 8'd1) && (wk00_after[7:0] == 8'd1) &&
+        (wv00_after[7:0] == 8'd1) && (wo00_after[7:0] == 8'd1))
+      $fatal(1, "full backprop did not update any major weight matrix");
+
+    axi_write(REG_CONTROL, 32'h0000_0009);
+    axi_write(REG_CONTROL, 32'h0000_0008);
+    begin : poll_fullbp_reinfer
+      integer t6;
+      for (t6 = 0; t6 < 4000; t6 = t6 + 1) begin
+        axi_read(REG_STATUS, rdata);
+        if (rdata[1]) begin
+          t6 = 4000;
+        end
+        @(posedge clk);
+      end
+      if (!rdata[1])
+        $fatal(1, "Timeout waiting for fullbp reinfer DONE");
+      if (rdata[2])
+        $fatal(1, "Unexpected fullbp reinfer ERR status");
+    end
+
+    mem_read(3'd5, addr2d(16'd0, 16'd0), fullbp_out00_after);
+    if ($signed(fullbp_out00_after[15:0]) <= $signed(fullbp_out00_before[15:0]))
+      $fatal(1, "full backprop did not improve out[0][0]: before %0d after %0d",
+        $signed(fullbp_out00_before[15:0]), $signed(fullbp_out00_after[15:0]));
 
     $display("TINY ATTN PASS cycles=%0d macs=%0d irq=%0d gain0=%0d bias0=%0d",
       perf_cycles, perf_macs, irq, $signed(gain0_after[15:0]), $signed(bias0_after[15:0]));

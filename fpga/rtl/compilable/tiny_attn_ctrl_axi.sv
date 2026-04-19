@@ -26,6 +26,7 @@ module tiny_attn_ctrl_axi #(
   output logic           ctrl_start,
   output logic           ctrl_soft_rst,
   output logic           ctrl_mode_train,
+  output logic           ctrl_mode_full_bp,
   output logic           ctrl_use_out_proj,
   output logic           ctrl_causal,
   output logic [15:0]    seq_len,
@@ -58,7 +59,7 @@ module tiny_attn_ctrl_axi #(
 );
   // Address map (offsets):
   // 0x00 CONTROL:
-  //      [0] START, [1] SOFT_RST, [2] MODE_TRAIN, [3] USE_OUT_PROJ, [4] CAUSAL
+  //      [0] START, [1] SOFT_RST, [2] MODE_TRAIN, [3] USE_OUT_PROJ, [4] CAUSAL, [5] MODE_FULL_BP
   // 0x04 STATUS: [0] BUSY, [1] DONE, [2] ERR
   // 0x08 SEQ_LEN
   // 0x0C D_MODEL
@@ -97,6 +98,7 @@ module tiny_attn_ctrl_axi #(
   assign ctrl_mode_train   = REG_CONTROL[2];
   assign ctrl_use_out_proj = REG_CONTROL[3];
   assign ctrl_causal       = REG_CONTROL[4];
+  assign ctrl_mode_full_bp = REG_CONTROL[5];
 
   assign seq_len       = REG_SEQ_LEN[15:0];
   assign d_model       = REG_D_MODEL[15:0];

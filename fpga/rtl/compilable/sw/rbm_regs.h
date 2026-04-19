@@ -141,6 +141,7 @@ static inline uint32_t rbm_mem_read(uintptr_t base, uint32_t sel, uint32_t addr)
 #define TINY_CTRL_MODE_TRAIN   (1u << 2)
 #define TINY_CTRL_USE_OUT_PROJ (1u << 3)
 #define TINY_CTRL_CAUSAL       (1u << 4)
+#define TINY_CTRL_MODE_FULL_BP (1u << 5)
 
 // Tiny attention STATUS bits
 #define TINY_STATUS_BUSY       (1u << 0)

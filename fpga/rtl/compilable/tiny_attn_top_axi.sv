@@ -28,6 +28,7 @@ module tiny_attn_top_axi #(
   logic ctrl_start;
   logic ctrl_soft_rst;
   logic ctrl_mode_train;
+  logic ctrl_mode_full_bp;
   logic ctrl_use_out_proj;
   logic ctrl_causal;
   logic [15:0] seq_len;
@@ -54,6 +55,7 @@ module tiny_attn_top_axi #(
     .ctrl_start(ctrl_start),
     .ctrl_soft_rst(ctrl_soft_rst),
     .ctrl_mode_train(ctrl_mode_train),
+    .ctrl_mode_full_bp(ctrl_mode_full_bp),
     .ctrl_use_out_proj(ctrl_use_out_proj),
     .ctrl_causal(ctrl_causal),
     .seq_len(seq_len),
@@ -93,6 +95,7 @@ module tiny_attn_top_axi #(
     .ctrl_start(ctrl_start),
     .ctrl_soft_rst(ctrl_soft_rst),
     .ctrl_mode_train(ctrl_mode_train),
+    .ctrl_mode_full_bp(ctrl_mode_full_bp),
     .ctrl_use_out_proj(ctrl_use_out_proj),
     .ctrl_causal(ctrl_causal),
     .seq_len(seq_len),
