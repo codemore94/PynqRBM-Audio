@@ -2,6 +2,7 @@ SIM ?= iverilog
 TB  ?= tb_rbm_cd1_top_axi
 TOP ?= rbm_cd1_top_axi
 CROSS ?= riscv32-unknown-elf-
+PYTHON ?= python3
 
 SRCS = \
   lfsr16.sv \
@@ -77,6 +78,9 @@ sim_soc_full: fw_soc_full $(SOC_FULL_SRCS)
 sim_tiny: $(TINY_SRCS)
 	$(SIM) -g2012 -s $(TINY_TB) -o simv_tiny $(TINY_SRCS)
 	./simv_tiny
+
+sim_tiny_cocotb:
+	$(PYTHON) tests/run_tiny_attn_cocotb.py --sim $(SIM)
 
 sim_soc_long: fw_soc
 	$(MAKE) sim_soc
