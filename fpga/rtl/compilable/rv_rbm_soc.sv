@@ -81,34 +81,38 @@ module rv_rbm_soc #(
     attn_sel     = mem_valid && (mem_addr >= ATTN_BASE) && (mem_addr < ATTN_END);
   end
 
-  logic [31:0] ram [0:MEM_WORDS-1];
+  localparam integer RAM_ADDR_W = (MEM_WORDS <= 1) ? 1 : $clog2(MEM_WORDS);
+  logic [RAM_ADDR_W-1:0] ram_addr;
+  logic [31:0] ram_q;
   logic [31:0] ram_rdata;
   logic        ram_ready;
+  logic        ram_sel_d;
+
+  assign ram_addr = mem_addr[RAM_ADDR_W+1:2];
+
+  rv_word_ram #(
+    .DEPTH(MEM_WORDS),
+    .ADDR_W(RAM_ADDR_W),
+    .INIT_FILE(FW_HEX)
+  ) u_ram (
+    .clk(clk),
+    .addr(ram_addr),
+    .we(ram_sel && |mem_wstrb),
+    .be(mem_wstrb),
+    .wdata(mem_wdata),
+    .rdata(ram_q)
+  );
+
   always_ff @(posedge clk) begin
-    ram_ready <= 1'b0;
     if (!resetn) begin
       ram_ready <= 1'b0;
-    end else if (ram_sel) begin
-      ram_rdata <= ram[mem_addr[31:2]];
-      if (mem_wstrb[0]) ram[mem_addr[31:2]][7:0]   <= mem_wdata[7:0];
-      if (mem_wstrb[1]) ram[mem_addr[31:2]][15:8]  <= mem_wdata[15:8];
-      if (mem_wstrb[2]) ram[mem_addr[31:2]][23:16] <= mem_wdata[23:16];
-      if (mem_wstrb[3]) ram[mem_addr[31:2]][31:24] <= mem_wdata[31:24];
-      ram_ready <= 1'b1;
-    end
-  end
-
-// synthesis translate_off
-  initial begin
-    if ($test$plusargs("NO_FW")) begin
-      // Keep zero-initialized memory in simulation when requested.
+      ram_sel_d <= 1'b0;
+      ram_rdata <= 32'b0;
     end else begin
-      $readmemh(FW_HEX, ram);
+      ram_sel_d <= ram_sel;
+      ram_ready <= ram_sel_d;
+      ram_rdata <= ram_q;
     end
-  end
-// synthesis translate_on
-  initial begin
-    $readmemh(FW_HEX, ram);
   end
 
   logic [31:0] uart_div_do, uart_dat_do;
@@ -332,4 +336,84 @@ module rv_rbm_soc #(
   end
 
   wire unused_ok = ^{mem_instr, rbm_req_ready, attn_req_ready, uart_ready, 1'b0};
+endmodule
+
+module rv_word_ram #(
+  parameter integer DEPTH = 4096,
+  parameter integer ADDR_W = 12,
+  parameter INIT_FILE = ""
+)(
+  input  logic clk,
+  input  logic [ADDR_W-1:0] addr,
+  input  logic we,
+  input  logic [3:0] be,
+  input  logic [31:0] wdata,
+  output logic [31:0] rdata
+);
+`ifdef QUARTUS_SYNTH
+  wire [31:0] ram_q;
+  assign rdata = ram_q;
+
+  altsyncram #(
+    .operation_mode("SINGLE_PORT"),
+    .width_a(32),
+    .widthad_a(ADDR_W),
+    .numwords_a(DEPTH),
+    .byte_size(8),
+    .width_byteena_a(4),
+    .outdata_reg_a("UNREGISTERED"),
+    .address_aclr_a("NONE"),
+    .outdata_aclr_a("NONE"),
+    .indata_aclr_a("NONE"),
+    .wrcontrol_aclr_a("NONE"),
+    .byteena_aclr_a("NONE"),
+    .read_during_write_mode_port_a("NEW_DATA_NO_NBE_READ"),
+    .ram_block_type("M10K"),
+    .init_file(INIT_FILE),
+    .intended_device_family("Cyclone V"),
+    .lpm_type("altsyncram")
+  ) u_mem (
+    .wren_a(we),
+    .wren_b(1'b0),
+    .rden_a(1'b1),
+    .rden_b(1'b0),
+    .data_a(wdata),
+    .data_b(1'b0),
+    .address_a(addr),
+    .address_b(1'b0),
+    .clock0(clk),
+    .clock1(1'b1),
+    .clocken0(1'b1),
+    .clocken1(1'b1),
+    .clocken2(1'b1),
+    .clocken3(1'b1),
+    .aclr0(1'b0),
+    .aclr1(1'b0),
+    .byteena_a(be),
+    .byteena_b(1'b1),
+    .addressstall_a(1'b0),
+    .addressstall_b(1'b0),
+    .q_a(ram_q),
+    .q_b(),
+    .eccstatus()
+  );
+`else
+  logic [31:0] mem [0:DEPTH-1];
+
+  initial begin
+    rdata = 32'b0;
+    if (!$test$plusargs("NO_FW"))
+      $readmemh(INIT_FILE, mem);
+  end
+
+  always_ff @(posedge clk) begin
+    rdata <= mem[addr];
+    if (we) begin
+      if (be[0]) mem[addr][7:0]   <= wdata[7:0];
+      if (be[1]) mem[addr][15:8]  <= wdata[15:8];
+      if (be[2]) mem[addr][23:16] <= wdata[23:16];
+      if (be[3]) mem[addr][31:24] <= wdata[31:24];
+    end
+  end
+`endif
 endmodule

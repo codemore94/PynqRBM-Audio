@@ -60,9 +60,11 @@ module rbm_cd1_top_axi #(
   logic [31:0]    mem_rdata;
 
   // Local memories / state
+  localparam integer W_DEPTH = I_DIM * H_DIM;
+  localparam integer W_AW = (W_DEPTH <= 1) ? 1 : $clog2(W_DEPTH);
+
   logic signed [7:0]  v0 [0:I_DIM-1];
   logic signed [7:0]  v1 [0:I_DIM-1];
-  logic signed [15:0] w  [0:I_DIM-1][0:H_DIM-1];
   logic signed [15:0] b_vis [0:I_DIM-1];
   logic signed [15:0] b_hid [0:H_DIM-1];
   logic [15:0]        h0_prob [0:H_DIM-1];
@@ -70,9 +72,40 @@ module rbm_cd1_top_axi #(
   logic signed [7:0]  h0_samp [0:H_DIM-1];
 
   // Momentum buffers (previous updates)
-  logic signed [15:0] prev_dw  [0:I_DIM-1][0:H_DIM-1];
   logic signed [15:0] prev_dbv [0:I_DIM-1];
   logic signed [15:0] prev_dbh [0:H_DIM-1];
+
+  logic [W_AW-1:0] w_rd_addr, w_wr_addr;
+  logic [W_AW-1:0] prev_dw_rd_addr, prev_dw_wr_addr;
+  logic signed [15:0] w_q, prev_dw_q;
+  logic signed [15:0] w_wr_data, prev_dw_wr_data;
+  logic w_we, prev_dw_we;
+
+  rbm_sdp_ram #(
+    .DATA_W(16),
+    .DEPTH(W_DEPTH),
+    .ADDR_W(W_AW)
+  ) u_w_mem (
+    .clk(ACLK),
+    .we(w_we),
+    .rd_addr(w_rd_addr),
+    .wr_addr(w_wr_addr),
+    .wr_data(w_wr_data),
+    .rd_data(w_q)
+  );
+
+  rbm_sdp_ram #(
+    .DATA_W(16),
+    .DEPTH(W_DEPTH),
+    .ADDR_W(W_AW)
+  ) u_prev_dw_mem (
+    .clk(ACLK),
+    .we(prev_dw_we),
+    .rd_addr(prev_dw_rd_addr),
+    .wr_addr(prev_dw_wr_addr),
+    .wr_data(prev_dw_wr_data),
+    .rd_data(prev_dw_q)
+  );
 
   // RNG
   logic [15:0] rnd;
@@ -131,32 +164,25 @@ module rbm_cd1_top_axi #(
   assign mem_i = mem_addr[15:0];
   assign mem_h = mem_addr[31:16];
 
-  // Memory window readback
-  always_comb begin
-    mem_rdata = 32'b0;
-    case (mem_sel)
-      3'd0: if (mem_i < I_DIM_U16)                  mem_rdata = {{24{v0[mem_i][7]}}, v0[mem_i]};
-      3'd1: if (mem_i < I_DIM_U16 && mem_h < H_DIM_U16) mem_rdata = {{16{w[mem_i][mem_h][15]}}, w[mem_i][mem_h]};
-      3'd2: if (mem_i < I_DIM_U16)                  mem_rdata = {{16{b_vis[mem_i][15]}}, b_vis[mem_i]};
-      3'd3: if (mem_i < H_DIM_U16)                  mem_rdata = {{16{b_hid[mem_i][15]}}, b_hid[mem_i]};
-      3'd4: if (mem_i < H_DIM_U16)                  mem_rdata = {16'b0, h0_prob[mem_i]};
-      3'd5: if (mem_i < H_DIM_U16)                  mem_rdata = {16'b0, h1_prob[mem_i]};
-      default:                                      mem_rdata = 32'b0;
-    endcase
-  end
+  // Memory-window readback is registered in the state process below so
+  // large arrays can infer synchronous block RAM instead of LUT muxes.
 
   // Training FSM
-  typedef enum logic [3:0] {
+  typedef enum logic [4:0] {
     ST_IDLE,
+    ST_POS_FETCH,
     ST_POS_ACC,
     ST_POS_SIG,
     ST_POS_STORE,
+    ST_NEG_FETCH,
     ST_NEG_ACC,
     ST_NEG_SIG,
     ST_NEG_STORE,
+    ST_NEGH_FETCH,
     ST_NEGH_ACC,
     ST_NEGH_SIG,
     ST_NEGH_STORE,
+    ST_UPD_W_FETCH,
     ST_UPD_W,
     ST_UPD_BVIS,
     ST_UPD_BHID,
@@ -172,6 +198,7 @@ module rbm_cd1_top_axi #(
   logic batch_pulse, epoch_pulse;
   logic [31:0] cycle_ctr, updates_ctr, stall_ctr;
   logic [15:0] active_i_dim, active_h_dim;
+  logic [W_AW-1:0] wh_addr, mem_wh_addr;
 
   // Update path helpers
   logic signed [8:0]   v0_mul_q, v1_mul_q, h0s_mul_q;
@@ -200,7 +227,24 @@ module rbm_cd1_top_axi #(
   logic signed [15:0]  mom_bh_term;
   logic signed [15:0]  dbh_update;
 
-  integer i, j;
+  integer init_i;
+
+  initial begin
+    mem_rdata = 32'b0;
+    for (init_i = 0; init_i < I_DIM; init_i = init_i + 1) begin
+      v0[init_i] = 8'sd0;
+      v1[init_i] = 8'sd0;
+      b_vis[init_i] = 16'sd0;
+      prev_dbv[init_i] = 16'sd0;
+    end
+    for (init_i = 0; init_i < H_DIM; init_i = init_i + 1) begin
+      b_hid[init_i] = 16'sd0;
+      h0_prob[init_i] = 16'd0;
+      h1_prob[init_i] = 16'd0;
+      h0_samp[init_i] = 8'sd0;
+      prev_dbh[init_i] = 16'sd0;
+    end
+  end
 
   function automatic logic signed [15:0] sat16(
     input logic signed [63:0] x
@@ -225,6 +269,20 @@ module rbm_cd1_top_axi #(
       else        sample_bit = (r < p);
     end
   endfunction
+
+  function automatic logic [W_AW-1:0] wh_index(
+    input logic [15:0] i_val,
+    input logic [15:0] h_val
+  );
+    logic [31:0] idx;
+    begin
+      idx = (i_val * H_DIM_U16) + h_val;
+      wh_index = idx[W_AW-1:0];
+    end
+  endfunction
+
+  assign wh_addr = wh_index(i_idx, h_idx);
+  assign mem_wh_addr = wh_index(mem_i, mem_h);
 
   always_comb begin
     active_i_dim = (i_dim == 16'd0 || i_dim > I_DIM_U16) ? I_DIM_U16 : i_dim;
@@ -258,10 +316,10 @@ module rbm_cd1_top_axi #(
     dbv_base  = sat16($signed(scaled_vis  >>> 8));
     dbh_base  = sat16($signed(scaled_hid  >>> 17));
 
-    mom_w_mul   = mom_q * prev_dw[i_idx][h_idx];
+    mom_w_mul   = mom_q * prev_dw_q;
     mom_bv_mul  = mom_q * prev_dbv[i_idx];
     mom_bh_mul  = mom_q * prev_dbh[h_idx];
-    wd_w_mul    = wd_q  * w[i_idx][h_idx];
+    wd_w_mul    = wd_q  * w_q;
 
     mom_w_term  = sat16($signed(mom_w_mul  >>> 16));
     mom_bv_term = sat16($signed(mom_bv_mul >>> 16));
@@ -271,6 +329,35 @@ module rbm_cd1_top_axi #(
     dw_update   = sat16($signed(dw_base)  + $signed(mom_w_term)  - $signed(wd_w_term));
     dbv_update  = sat16($signed(dbv_base) + $signed(mom_bv_term));
     dbh_update  = sat16($signed(dbh_base) + $signed(mom_bh_term));
+  end
+
+  always_comb begin
+    w_rd_addr       = mem_wh_addr;
+    w_wr_addr       = wh_addr;
+    w_wr_data       = w_q + dw_update;
+    w_we            = 1'b0;
+    prev_dw_rd_addr = wh_addr;
+    prev_dw_wr_addr = wh_addr;
+    prev_dw_wr_data = dw_update;
+    prev_dw_we      = 1'b0;
+
+    if (st == ST_POS_FETCH || st == ST_NEG_FETCH ||
+        st == ST_NEGH_FETCH || st == ST_UPD_W_FETCH) begin
+      w_rd_addr = wh_addr;
+    end
+
+    if (st == ST_UPD_W) begin
+      w_we = 1'b1;
+      prev_dw_we = 1'b1;
+    end else if (mem_wen && (st == ST_IDLE) && mem_sel == 3'd1 &&
+                 mem_i < I_DIM_U16 && mem_h < H_DIM_U16) begin
+      w_wr_addr = mem_wh_addr;
+      w_wr_data = mem_wdata[15:0];
+      w_we = 1'b1;
+      prev_dw_wr_addr = mem_wh_addr;
+      prev_dw_wr_data = 16'sd0;
+      prev_dw_we = 1'b1;
+    end
   end
 
   assign stat_busy       = (st != ST_IDLE);
@@ -299,26 +386,7 @@ module rbm_cd1_top_axi #(
       cycle_ctr  <= 32'd0;
       updates_ctr <= 32'd0;
       stall_ctr  <= 32'd0;
-
-      for (i = 0; i < I_DIM; i = i + 1) begin
-        v0[i]       <= 8'sd0;
-        v1[i]       <= 8'sd0;
-        b_vis[i]    <= 16'sd0;
-        prev_dbv[i] <= 16'sd0;
-        for (j = 0; j < H_DIM; j = j + 1) begin
-          w[i][j]      <= 16'sd0;
-          prev_dw[i][j] <= 16'sd0;
-        end
-      end
-
-      for (j = 0; j < H_DIM; j = j + 1) begin
-        b_hid[j]    <= 16'sd0;
-        h0_prob[j]  <= 16'd0;
-        h1_prob[j]  <= 16'd0;
-        h0_samp[j]  <= 8'sd0;
-        prev_dbh[j] <= 16'sd0;
-      end
-
+      mem_rdata  <= 32'b0;
     end else begin
       batch_pulse <= 1'b0;
       epoch_pulse <= 1'b0;
@@ -340,10 +408,41 @@ module rbm_cd1_top_axi #(
         if (mem_wen && (st == ST_IDLE)) begin
           case (mem_sel)
             3'd0: if (mem_i < I_DIM_U16)                         v0[mem_i]       <= mem_wdata[7:0];
-            3'd1: if (mem_i < I_DIM_U16 && mem_h < H_DIM_U16)   w[mem_i][mem_h] <= mem_wdata[15:0];
+            3'd1: ;
             3'd2: if (mem_i < I_DIM_U16)                         b_vis[mem_i]    <= mem_wdata[15:0];
             3'd3: if (mem_i < H_DIM_U16)                         b_hid[mem_i]    <= mem_wdata[15:0];
             default: ;
+          endcase
+        end
+
+        if (st == ST_IDLE) begin
+          case (mem_sel)
+            3'd0: if (mem_i < I_DIM_U16)
+              mem_rdata <= {{24{v0[mem_i][7]}}, v0[mem_i]};
+            else
+              mem_rdata <= 32'b0;
+            3'd1: if (mem_i < I_DIM_U16 && mem_h < H_DIM_U16) begin
+              mem_rdata <= {{16{w_q[15]}}, w_q};
+            end else begin
+              mem_rdata <= 32'b0;
+            end
+            3'd2: if (mem_i < I_DIM_U16)
+              mem_rdata <= {{16{b_vis[mem_i][15]}}, b_vis[mem_i]};
+            else
+              mem_rdata <= 32'b0;
+            3'd3: if (mem_i < H_DIM_U16)
+              mem_rdata <= {{16{b_hid[mem_i][15]}}, b_hid[mem_i]};
+            else
+              mem_rdata <= 32'b0;
+            3'd4: if (mem_i < H_DIM_U16)
+              mem_rdata <= {16'b0, h0_prob[mem_i]};
+            else
+              mem_rdata <= 32'b0;
+            3'd5: if (mem_i < H_DIM_U16)
+              mem_rdata <= {16'b0, h1_prob[mem_i]};
+            else
+              mem_rdata <= 32'b0;
+            default: mem_rdata <= 32'b0;
           endcase
         end
 
@@ -362,18 +461,23 @@ module rbm_cd1_top_axi #(
               cycle_ctr   <= 32'd0;
               updates_ctr <= 32'd0;
               stall_ctr   <= 32'd0;
-              st          <= ST_POS_ACC;
+              st          <= ST_POS_FETCH;
             end
           end
 
           // Positive phase: compute h0_prob
+          ST_POS_FETCH: begin
+            stall_ctr <= stall_ctr + 1'b1;
+            st <= ST_POS_ACC;
+          end
+
           ST_POS_ACC: begin
             if (i_idx == 16'd0) begin
               acc <= {{16{b_hid[h_idx][15]}}, b_hid[h_idx]} +
-                     ($signed({{8{v0[i_idx][7]}}, v0[i_idx]}) * $signed(w[i_idx][h_idx]));
+                     ($signed({{8{v0[i_idx][7]}}, v0[i_idx]}) * $signed(w_q));
             end else begin
               acc <= acc +
-                     ($signed({{8{v0[i_idx][7]}}, v0[i_idx]}) * $signed(w[i_idx][h_idx]));
+                     ($signed({{8{v0[i_idx][7]}}, v0[i_idx]}) * $signed(w_q));
             end
 
             if (i_idx == active_i_dim - 1'b1) begin
@@ -381,6 +485,7 @@ module rbm_cd1_top_axi #(
               st    <= ST_POS_SIG;
             end else begin
               i_idx <= i_idx + 1'b1;
+              st    <= ST_POS_FETCH;
             end
           end
 
@@ -396,21 +501,26 @@ module rbm_cd1_top_axi #(
             h0_samp[h_idx] <= sample_bit(sig_out, ctrl_determ, rnd) ? 8'sh80 : 8'sh00;
             if (h_idx == active_h_dim - 1'b1) begin
               h_idx <= 16'd0;
-              st    <= ST_NEG_ACC;
+              st    <= ST_NEG_FETCH;
             end else begin
               h_idx <= h_idx + 1'b1;
-              st    <= ST_POS_ACC;
+              st    <= ST_POS_FETCH;
             end
           end
 
           // Negative phase: reconstruct v1
+          ST_NEG_FETCH: begin
+            stall_ctr <= stall_ctr + 1'b1;
+            st <= ST_NEG_ACC;
+          end
+
           ST_NEG_ACC: begin
             if (h_idx == 16'd0) begin
               acc <= {{16{b_vis[i_idx][15]}}, b_vis[i_idx]} +
-                     ($signed({{8{h0_samp[h_idx][7]}}, h0_samp[h_idx]}) * $signed(w[i_idx][h_idx]));
+                     ($signed({{8{h0_samp[h_idx][7]}}, h0_samp[h_idx]}) * $signed(w_q));
             end else begin
               acc <= acc +
-                     ($signed({{8{h0_samp[h_idx][7]}}, h0_samp[h_idx]}) * $signed(w[i_idx][h_idx]));
+                     ($signed({{8{h0_samp[h_idx][7]}}, h0_samp[h_idx]}) * $signed(w_q));
             end
 
             if (h_idx == active_h_dim - 1'b1) begin
@@ -418,6 +528,7 @@ module rbm_cd1_top_axi #(
               st    <= ST_NEG_SIG;
             end else begin
               h_idx <= h_idx + 1'b1;
+              st    <= ST_NEG_FETCH;
             end
           end
 
@@ -432,21 +543,26 @@ module rbm_cd1_top_axi #(
             v1[i_idx] <= sample_bit(sig_out, ctrl_determ, rnd) ? 8'sh80 : 8'sh00;
             if (i_idx == active_i_dim - 1'b1) begin
               i_idx <= 16'd0;
-              st    <= ST_NEGH_ACC;
+              st    <= ST_NEGH_FETCH;
             end else begin
               i_idx <= i_idx + 1'b1;
-              st    <= ST_NEG_ACC;
+              st    <= ST_NEG_FETCH;
             end
           end
 
           // Negative hidden probabilities h1
+          ST_NEGH_FETCH: begin
+            stall_ctr <= stall_ctr + 1'b1;
+            st <= ST_NEGH_ACC;
+          end
+
           ST_NEGH_ACC: begin
             if (i_idx == 16'd0) begin
               acc <= {{16{b_hid[h_idx][15]}}, b_hid[h_idx]} +
-                     ($signed({{8{v1[i_idx][7]}}, v1[i_idx]}) * $signed(w[i_idx][h_idx]));
+                     ($signed({{8{v1[i_idx][7]}}, v1[i_idx]}) * $signed(w_q));
             end else begin
               acc <= acc +
-                     ($signed({{8{v1[i_idx][7]}}, v1[i_idx]}) * $signed(w[i_idx][h_idx]));
+                     ($signed({{8{v1[i_idx][7]}}, v1[i_idx]}) * $signed(w_q));
             end
 
             if (i_idx == active_i_dim - 1'b1) begin
@@ -454,6 +570,7 @@ module rbm_cd1_top_axi #(
               st    <= ST_NEGH_SIG;
             end else begin
               i_idx <= i_idx + 1'b1;
+              st    <= ST_NEGH_FETCH;
             end
           end
 
@@ -469,17 +586,20 @@ module rbm_cd1_top_axi #(
             if (h_idx == active_h_dim - 1'b1) begin
               h_idx <= 16'd0;
               i_idx <= 16'd0;
-              st    <= ST_UPD_W;
+              st    <= ST_UPD_W_FETCH;
             end else begin
               h_idx <= h_idx + 1'b1;
-              st    <= ST_NEGH_ACC;
+              st    <= ST_NEGH_FETCH;
             end
           end
 
           // Weight update
+          ST_UPD_W_FETCH: begin
+            stall_ctr <= stall_ctr + 1'b1;
+            st <= ST_UPD_W;
+          end
+
           ST_UPD_W: begin
-            w[i_idx][h_idx]       <= w[i_idx][h_idx] + dw_update;
-            prev_dw[i_idx][h_idx] <= dw_update;
             updates_ctr           <= updates_ctr + 1'b1;
 
             if (h_idx == active_h_dim - 1'b1) begin
@@ -489,9 +609,11 @@ module rbm_cd1_top_axi #(
                 st    <= ST_UPD_BVIS;
               end else begin
                 i_idx <= i_idx + 1'b1;
+                st    <= ST_UPD_W_FETCH;
               end
             end else begin
               h_idx <= h_idx + 1'b1;
+              st    <= ST_UPD_W_FETCH;
             end
           end
 
@@ -536,13 +658,13 @@ module rbm_cd1_top_axi #(
                 epoch_cnt <= epoch_cnt + 1'b1;
                 i_idx     <= 16'd0;
                 h_idx     <= 16'd0;
-                st        <= ST_POS_ACC;
+                st        <= ST_POS_FETCH;
               end
             end else begin
               batch_cnt <= batch_cnt + 1'b1;
               i_idx     <= 16'd0;
               h_idx     <= 16'd0;
-              st        <= ST_POS_ACC;
+              st        <= ST_POS_FETCH;
             end
           end
 
@@ -560,4 +682,32 @@ module rbm_cd1_top_axi #(
     end
   end
 
+endmodule
+
+module rbm_sdp_ram #(
+  parameter integer DATA_W = 16,
+  parameter integer DEPTH = 1024,
+  parameter integer ADDR_W = 10
+)(
+  input  logic clk,
+  input  logic we,
+  input  logic [ADDR_W-1:0] rd_addr,
+  input  logic [ADDR_W-1:0] wr_addr,
+  input  logic signed [DATA_W-1:0] wr_data,
+  output logic signed [DATA_W-1:0] rd_data
+);
+  (* ramstyle = "M10K" *) logic signed [DATA_W-1:0] mem [0:DEPTH-1];
+  integer init_idx;
+
+  initial begin
+    rd_data = '0;
+    for (init_idx = 0; init_idx < DEPTH; init_idx = init_idx + 1)
+      mem[init_idx] = '0;
+  end
+
+  always_ff @(posedge clk) begin
+    rd_data <= mem[rd_addr];
+    if (we)
+      mem[wr_addr] <= wr_data;
+  end
 endmodule
