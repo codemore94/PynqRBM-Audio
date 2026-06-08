@@ -111,11 +111,11 @@ module tb_rv_tiny_attn_rbm_soc_full;
 
     repeat (2500000) begin
       @(posedge clk);
-      if (dut.ram[16'h3f00 >> 2] != prev_fw_stage || dut.ram[16'h3f04 >> 2] != prev_fw_rc) begin
+      if (dut.u_ram.mem[16'h3f00 >> 2] != prev_fw_stage || dut.u_ram.mem[16'h3f04 >> 2] != prev_fw_rc) begin
         $display("TB INFO fw stage=%0d rc=%0d time=%0t",
-          dut.ram[16'h3f00 >> 2], dut.ram[16'h3f04 >> 2], $time);
-        prev_fw_stage = dut.ram[16'h3f00 >> 2];
-        prev_fw_rc = dut.ram[16'h3f04 >> 2];
+          dut.u_ram.mem[16'h3f00 >> 2], dut.u_ram.mem[16'h3f04 >> 2], $time);
+        prev_fw_stage = dut.u_ram.mem[16'h3f00 >> 2];
+        prev_fw_rc = dut.u_ram.mem[16'h3f04 >> 2];
       end
       if (saw_tiny_hw_version_read && saw_rbm_hw_version_read &&
           tiny_start_count >= 3 && saw_tiny_done &&
@@ -133,7 +133,7 @@ module tb_rv_tiny_attn_rbm_soc_full;
       saw_tiny_hw_version_read, saw_rbm_hw_version_read, tiny_start_count, saw_tiny_done,
       saw_tiny_train, saw_tiny_adapt_write, saw_rbm_start, saw_rbm_irq, rbm_done_count);
     $display("FULL SOC FW STATE: stage=%0d rc=%0d",
-      dut.ram[16'h3f00 >> 2], dut.ram[16'h3f04 >> 2]);
+      dut.u_ram.mem[16'h3f00 >> 2], dut.u_ram.mem[16'h3f04 >> 2]);
     $fatal(1);
   end
 endmodule
