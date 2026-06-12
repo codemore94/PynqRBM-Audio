@@ -1,7 +1,10 @@
 location: fpga/rtl/compilable
 
-Unfortunately, currently does not fit to "low-price" SOC-FPGAs like Pynq-Z1 or Cyclone V. Logic is overutilized (>300% of Cyclone V ALMs, so much stuff needs to be moved to BRAM etc. 
-At a high level, this design is a small FPGA SoC that combines three parts:
+
+Currently with heavily using OpenAI Codex 5.5 high Plus I have achieved better design with utilizing the BRAM and DSP instead direct LUTs and FFs in Pynq. The current
+problem is that after running implementation tools (routing, floorplanning etc) there is a terrible power consumption meaning that whole FPGA will burn in some
+microseconds if a bitstream will be programmed. So as a feedback and the correction of error the implementation report should be utilized and the design redesigned
+a bit more sensible from a physical viewpoint. 
 
   - A PicoRV32 soft CPU
   - A tiny self-attention accelerator
