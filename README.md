@@ -6,6 +6,10 @@ problem is that after running implementation tools (routing, floorplanning etc) 
 microseconds if a bitstream will be programmed. So as a feedback and the correction of error the implementation report should be utilized and the design redesigned
 a bit more sensible from a physical viewpoint. 
 
+
+-------------------
+Design plan:
+
   - A PicoRV32 soft CPU
   - A tiny self-attention accelerator
   - An RBM CD-1 accelerator
