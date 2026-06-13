@@ -1,0 +1,12 @@
+Analysis & Synthesis Status : Failed - Sat Jun 13 07:14:16 2026
+Quartus Prime Version : 24.1std.0 Build 1077 03/04/2025 SC Lite Edition
+Revision Name : tb_rv_tiny_attn_rbm_soc_full
+Top-level Entity Name : tb_rv_tiny_attn_rbm_soc_full
+Family : Cyclone V
+Logic utilization (in ALMs) : N/A until Partition Merge
+Total registers : N/A until Partition Merge
+Total pins : N/A until Partition Merge
+Total virtual pins : N/A until Partition Merge
+Total block memory bits : N/A until Partition Merge
+Total PLLs : N/A until Partition Merge
+Total DLLs : N/A until Partition Merge

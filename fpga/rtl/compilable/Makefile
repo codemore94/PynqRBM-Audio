@@ -3,6 +3,10 @@ TB  ?= tb_rbm_cd1_top_axi
 TOP ?= rbm_cd1_top_axi
 CROSS ?= riscv32-unknown-elf-
 PYTHON ?= python3
+VERILATOR ?= verilator
+# Width/unused warnings are intentional in this fixed-point datapath; silence them
+# so lint surfaces only structural/elaboration problems.
+VLINT_FLAGS ?= --lint-only -Wno-WIDTH -Wno-UNUSED -Wno-DECLFILENAME
 
 SRCS = \
   lfsr16.sv \
@@ -96,5 +100,19 @@ fw_soc_full: sw/rv_soc_full_fw.c sw/rbm_regs.h sw/rv_soc_fw.lds sw/rv_soc_start.
 	$(CROSS)objcopy -O binary sw/rv_soc_full_fw.elf sw/rv_soc_full_fw.bin
 	python3 ../../../picorv32/firmware/makehex.py sw/rv_soc_full_fw.bin 4096 > sw/rv_soc_full_fw.hex
 
+# Static elaboration/lint checks (no iverilog or Quartus needed).
+# Lints the two synthesizable accelerators standalone; the full SoC top
+# needs the picorv32 submodule checked out.
+lint: lint_rbm lint_attn
+
+lint_rbm:
+	$(VERILATOR) $(VLINT_FLAGS) --top-module rbm_cd1_top_axi \
+	  lfsr16.sv sigmoid.sv rbm_ctrl_axi_lite3.sv rbm_cd1_top_axi.sv
+
+lint_attn:
+	$(VERILATOR) $(VLINT_FLAGS) --top-module tiny_attn_top_axi \
+	  tiny_attn_ctrl_axi.sv tiny_attn_core.sv tiny_attn_top_axi.sv
+
 clean:
 	rm -f simv simv_soc simv_soc_small simv_soc_full simv_tiny *.vcd sw/rv_soc_fw.elf sw/rv_soc_fw.bin sw/rv_soc_full_fw.elf sw/rv_soc_full_fw.bin
+	rm -rf obj_dir

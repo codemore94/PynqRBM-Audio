@@ -23,7 +23,8 @@ module tiny_attn_top_axi #(
   output logic [1:0]     S_RRESP,
   output logic           S_RVALID,
   input  logic           S_RREADY,
-  output logic           irq
+  output logic           irq,
+  output logic           trace_stat_done
 );
   logic ctrl_start;
   logic ctrl_soft_rst;
@@ -43,6 +44,8 @@ module tiny_attn_top_axi #(
   logic [31:0] mem_addr, mem_wdata, mem_rdata;
   logic mem_wen;
   logic [2:0] mem_sel;
+
+  assign trace_stat_done = stat_done;
 
   tiny_attn_ctrl_axi u_ctrl (
     .ACLK(ACLK),

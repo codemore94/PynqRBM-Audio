@@ -23,7 +23,8 @@ module rbm_cd1_top_axi #(
   output logic [1:0]     S_RRESP,
   output logic           S_RVALID,
   input  logic           S_RREADY,
-  output logic           irq
+  output logic           irq,
+  output logic           trace_stat_done
 );
 
   localparam logic [15:0] I_DIM_U16 = I_DIM;
@@ -58,6 +59,8 @@ module rbm_cd1_top_axi #(
   logic           mem_wen;
   logic [2:0]     mem_sel;
   logic [31:0]    mem_rdata;
+
+  assign trace_stat_done = stat_done;
 
   // Local memories / state
   localparam integer W_DEPTH = I_DIM * H_DIM;

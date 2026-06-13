@@ -18,7 +18,29 @@ module rv_rbm_soc #(
   input  logic resetn,
   output logic uart_tx,
   input  logic uart_rx,
-  output logic rbm_irq
+  output logic rbm_irq,
+  output logic trace_rbm_awvalid,
+  output logic trace_rbm_awready,
+  output logic [31:0] trace_rbm_awaddr,
+  output logic trace_rbm_wvalid,
+  output logic trace_rbm_wready,
+  output logic [31:0] trace_rbm_wdata,
+  output logic trace_rbm_arvalid,
+  output logic trace_rbm_arready,
+  output logic [31:0] trace_rbm_araddr,
+  output logic trace_attn_awvalid,
+  output logic trace_attn_awready,
+  output logic [31:0] trace_attn_awaddr,
+  output logic trace_attn_wvalid,
+  output logic trace_attn_wready,
+  output logic [31:0] trace_attn_wdata,
+  output logic trace_attn_arvalid,
+  output logic trace_attn_arready,
+  output logic [31:0] trace_attn_araddr,
+  output logic trace_tiny_done,
+  output logic trace_rbm_done,
+  output logic [31:0] trace_fw_stage,
+  output logic [31:0] trace_fw_rc
 );
   localparam [31:0] RAM_END       = (4*MEM_WORDS);
   localparam [31:0] UART_BASE     = 32'h1000_0000;
@@ -90,6 +112,20 @@ module rv_rbm_soc #(
 
   assign ram_addr = mem_addr[RAM_ADDR_W+1:2];
 
+  function automatic [31:0] merge_wstrb(
+    input [31:0] old_value,
+    input [31:0] new_value,
+    input [3:0]  byte_en
+  );
+    begin
+      merge_wstrb = old_value;
+      if (byte_en[0]) merge_wstrb[7:0]   = new_value[7:0];
+      if (byte_en[1]) merge_wstrb[15:8]  = new_value[15:8];
+      if (byte_en[2]) merge_wstrb[23:16] = new_value[23:16];
+      if (byte_en[3]) merge_wstrb[31:24] = new_value[31:24];
+    end
+  endfunction
+
   rv_word_ram #(
     .DEPTH(MEM_WORDS),
     .ADDR_W(RAM_ADDR_W),
@@ -108,10 +144,16 @@ module rv_rbm_soc #(
       ram_ready <= 1'b0;
       ram_sel_d <= 1'b0;
       ram_rdata <= 32'b0;
+      trace_fw_stage <= 32'b0;
+      trace_fw_rc <= 32'b0;
     end else begin
       ram_sel_d <= ram_sel;
       ram_ready <= ram_sel_d;
       ram_rdata <= ram_q;
+      if (ram_sel && |mem_wstrb && mem_addr == 32'h0000_3f00)
+        trace_fw_stage <= merge_wstrb(trace_fw_stage, mem_wdata, mem_wstrb);
+      if (ram_sel && |mem_wstrb && mem_addr == 32'h0000_3f04)
+        trace_fw_rc <= merge_wstrb(trace_fw_rc, mem_wdata, mem_wstrb);
     end
   end
 
@@ -192,6 +234,28 @@ module rv_rbm_soc #(
   logic attn_bvalid, attn_bready, attn_arvalid, attn_arready, attn_rvalid, attn_rready;
   logic attn_req_done, attn_req_ready;
   logic [31:0] attn_req_rdata;
+  logic rbm_done_trace, tiny_done_trace;
+
+  assign trace_rbm_awvalid = rbm_awvalid;
+  assign trace_rbm_awready = rbm_awready;
+  assign trace_rbm_awaddr = rbm_awaddr;
+  assign trace_rbm_wvalid = rbm_wvalid;
+  assign trace_rbm_wready = rbm_wready;
+  assign trace_rbm_wdata = rbm_wdata;
+  assign trace_rbm_arvalid = rbm_arvalid;
+  assign trace_rbm_arready = rbm_arready;
+  assign trace_rbm_araddr = rbm_araddr;
+  assign trace_attn_awvalid = attn_awvalid;
+  assign trace_attn_awready = attn_awready;
+  assign trace_attn_awaddr = attn_awaddr;
+  assign trace_attn_wvalid = attn_wvalid;
+  assign trace_attn_wready = attn_wready;
+  assign trace_attn_wdata = attn_wdata;
+  assign trace_attn_arvalid = attn_arvalid;
+  assign trace_attn_arready = attn_arready;
+  assign trace_attn_araddr = attn_araddr;
+  assign trace_tiny_done = tiny_done_trace;
+  assign trace_rbm_done = rbm_done_trace;
 
   rbm_axil_bridge u_rbm_bridge (
     .clk(clk),
@@ -246,7 +310,8 @@ module rv_rbm_soc #(
     .S_RRESP(rbm_rresp),
     .S_RVALID(rbm_rvalid),
     .S_RREADY(rbm_rready),
-    .irq(rbm_irq)
+    .irq(rbm_irq),
+    .trace_stat_done(rbm_done_trace)
   );
 
   rbm_axil_bridge u_attn_bridge (
@@ -302,7 +367,8 @@ module rv_rbm_soc #(
     .S_RRESP(attn_rresp),
     .S_RVALID(attn_rvalid),
     .S_RREADY(attn_rready),
-    .irq(attn_irq)
+    .irq(attn_irq),
+    .trace_stat_done(tiny_done_trace)
   );
 
   logic uart_ready;
@@ -402,8 +468,12 @@ module rv_word_ram #(
 
   initial begin
     rdata = 32'b0;
+`ifdef SYNTHESIS
+    $readmemh(INIT_FILE, mem);
+`else
     if (!$test$plusargs("NO_FW"))
       $readmemh(INIT_FILE, mem);
+`endif
   end
 
   always_ff @(posedge clk) begin

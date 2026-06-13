@@ -1,0 +1,372 @@
+Analysis & Synthesis report for tb_rv_tiny_attn_rbm_soc_full
+Sat Jun 13 07:14:16 2026
+Quartus Prime Version 24.1std.0 Build 1077 03/04/2025 SC Lite Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Analysis & Synthesis Summary
+  3. Analysis & Synthesis Settings
+  4. Parallel Compilation
+  5. Analysis & Synthesis Messages
+  6. Analysis & Synthesis Suppressed Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2025  Altera Corporation. All rights reserved.
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and any partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, the Altera Quartus Prime License Agreement,
+the Altera IP License Agreement, or other applicable license
+agreement, including, without limitation, that your use is for
+the sole purpose of programming logic devices manufactured by
+Altera and sold by Altera or its authorized distributors.  Please
+refer to the Altera Software License Subscription Agreements 
+on the Quartus Prime software download page.
+
+
+
++-------------------------------------------------------------------------------+
+; Analysis & Synthesis Summary                                                  ;
++-----------------------------+-------------------------------------------------+
+; Analysis & Synthesis Status ; Failed - Sat Jun 13 07:14:16 2026               ;
+; Quartus Prime Version       ; 24.1std.0 Build 1077 03/04/2025 SC Lite Edition ;
+; Revision Name               ; tb_rv_tiny_attn_rbm_soc_full                    ;
+; Top-level Entity Name       ; tb_rv_tiny_attn_rbm_soc_full                    ;
+; Family                      ; Cyclone V                                       ;
+; Logic utilization (in ALMs) ; N/A until Partition Merge                       ;
+; Total registers             ; N/A until Partition Merge                       ;
+; Total pins                  ; N/A until Partition Merge                       ;
+; Total virtual pins          ; N/A until Partition Merge                       ;
+; Total block memory bits     ; N/A until Partition Merge                       ;
+; Total PLLs                  ; N/A until Partition Merge                       ;
+; Total DLLs                  ; N/A until Partition Merge                       ;
++-----------------------------+-------------------------------------------------+
+
+
++-----------------------------------------------------------------------------------------------------------------------------------------------+
+; Analysis & Synthesis Settings                                                                                                                 ;
++---------------------------------------------------------------------------------+------------------------------+------------------------------+
+; Option                                                                          ; Setting                      ; Default Value                ;
++---------------------------------------------------------------------------------+------------------------------+------------------------------+
+; Device                                                                          ; 5CGXFC7C7F23C8               ;                              ;
+; Top-level entity name                                                           ; tb_rv_tiny_attn_rbm_soc_full ; tb_rv_tiny_attn_rbm_soc_full ;
+; Family name                                                                     ; Cyclone V                    ; Cyclone V                    ;
+; Use smart compilation                                                           ; Off                          ; Off                          ;
+; Enable parallel Assembler and Timing Analyzer during compilation                ; On                           ; On                           ;
+; Enable compact report table                                                     ; Off                          ; Off                          ;
+; Restructure Multiplexers                                                        ; Auto                         ; Auto                         ;
+; MLAB Add Timing Constraints For Mixed-Port Feed-Through Mode Setting Don't Care ; Off                          ; Off                          ;
+; Create Debugging Nodes for IP Cores                                             ; Off                          ; Off                          ;
+; Preserve fewer node names                                                       ; On                           ; On                           ;
+; Intel FPGA IP Evaluation Mode                                                   ; Enable                       ; Enable                       ;
+; Verilog Version                                                                 ; Verilog_2001                 ; Verilog_2001                 ;
+; VHDL Version                                                                    ; VHDL_1993                    ; VHDL_1993                    ;
+; State Machine Processing                                                        ; Auto                         ; Auto                         ;
+; Safe State Machine                                                              ; Off                          ; Off                          ;
+; Extract Verilog State Machines                                                  ; On                           ; On                           ;
+; Extract VHDL State Machines                                                     ; On                           ; On                           ;
+; Ignore Verilog initial constructs                                               ; Off                          ; Off                          ;
+; Iteration limit for constant Verilog loops                                      ; 5000                         ; 5000                         ;
+; Iteration limit for non-constant Verilog loops                                  ; 250                          ; 250                          ;
+; Add Pass-Through Logic to Inferred RAMs                                         ; On                           ; On                           ;
+; Infer RAMs from Raw Logic                                                       ; On                           ; On                           ;
+; Parallel Synthesis                                                              ; On                           ; On                           ;
+; DSP Block Balancing                                                             ; Auto                         ; Auto                         ;
+; NOT Gate Push-Back                                                              ; On                           ; On                           ;
+; Power-Up Don't Care                                                             ; On                           ; On                           ;
+; Remove Redundant Logic Cells                                                    ; Off                          ; Off                          ;
+; Remove Duplicate Registers                                                      ; On                           ; On                           ;
+; Ignore CARRY Buffers                                                            ; Off                          ; Off                          ;
+; Ignore CASCADE Buffers                                                          ; Off                          ; Off                          ;
+; Ignore GLOBAL Buffers                                                           ; Off                          ; Off                          ;
+; Ignore ROW GLOBAL Buffers                                                       ; Off                          ; Off                          ;
+; Ignore LCELL Buffers                                                            ; Off                          ; Off                          ;
+; Ignore SOFT Buffers                                                             ; On                           ; On                           ;
+; Limit AHDL Integers to 32 Bits                                                  ; Off                          ; Off                          ;
+; Optimization Technique                                                          ; Balanced                     ; Balanced                     ;
+; Carry Chain Length                                                              ; 70                           ; 70                           ;
+; Auto Carry Chains                                                               ; On                           ; On                           ;
+; Auto Open-Drain Pins                                                            ; On                           ; On                           ;
+; Perform WYSIWYG Primitive Resynthesis                                           ; Off                          ; Off                          ;
+; Auto ROM Replacement                                                            ; On                           ; On                           ;
+; Auto RAM Replacement                                                            ; On                           ; On                           ;
+; Auto DSP Block Replacement                                                      ; On                           ; On                           ;
+; Auto Shift Register Replacement                                                 ; Auto                         ; Auto                         ;
+; Allow Shift Register Merging across Hierarchies                                 ; Auto                         ; Auto                         ;
+; Auto Clock Enable Replacement                                                   ; On                           ; On                           ;
+; Strict RAM Replacement                                                          ; Off                          ; Off                          ;
+; Allow Synchronous Control Signals                                               ; On                           ; On                           ;
+; Force Use of Synchronous Clear Signals                                          ; Off                          ; Off                          ;
+; Auto Resource Sharing                                                           ; Off                          ; Off                          ;
+; Allow Any RAM Size For Recognition                                              ; Off                          ; Off                          ;
+; Allow Any ROM Size For Recognition                                              ; Off                          ; Off                          ;
+; Allow Any Shift Register Size For Recognition                                   ; Off                          ; Off                          ;
+; Use LogicLock Constraints during Resource Balancing                             ; On                           ; On                           ;
+; Ignore translate_off and synthesis_off directives                               ; Off                          ; Off                          ;
+; Timing-Driven Synthesis                                                         ; On                           ; On                           ;
+; Report Parameter Settings                                                       ; On                           ; On                           ;
+; Report Source Assignments                                                       ; On                           ; On                           ;
+; Report Connectivity Checks                                                      ; On                           ; On                           ;
+; Ignore Maximum Fan-Out Assignments                                              ; Off                          ; Off                          ;
+; Synchronization Register Chain Length                                           ; 3                            ; 3                            ;
+; Power Optimization During Synthesis                                             ; Normal compilation           ; Normal compilation           ;
+; HDL message level                                                               ; Level2                       ; Level2                       ;
+; Suppress Register Optimization Related Messages                                 ; Off                          ; Off                          ;
+; Number of Removed Registers Reported in Synthesis Report                        ; 5000                         ; 5000                         ;
+; Number of Swept Nodes Reported in Synthesis Report                              ; 5000                         ; 5000                         ;
+; Number of Inverted Registers Reported in Synthesis Report                       ; 100                          ; 100                          ;
+; Clock MUX Protection                                                            ; On                           ; On                           ;
+; Auto Gated Clock Conversion                                                     ; Off                          ; Off                          ;
+; Block Design Naming                                                             ; Auto                         ; Auto                         ;
+; SDC constraint protection                                                       ; Off                          ; Off                          ;
+; Synthesis Effort                                                                ; Auto                         ; Auto                         ;
+; Shift Register Replacement - Allow Asynchronous Clear Signal                    ; On                           ; On                           ;
+; Pre-Mapping Resynthesis Optimization                                            ; Off                          ; Off                          ;
+; Analysis & Synthesis Message Level                                              ; Medium                       ; Medium                       ;
+; Disable Register Merging Across Hierarchies                                     ; Auto                         ; Auto                         ;
+; Resource Aware Inference For Block RAM                                          ; On                           ; On                           ;
+; Automatic Parallel Synthesis                                                    ; On                           ; On                           ;
+; Partial Reconfiguration Bitstream ID                                            ; Off                          ; Off                          ;
++---------------------------------------------------------------------------------+------------------------------+------------------------------+
+
+
++------------------------------------------+
+; Parallel Compilation                     ;
++----------------------------+-------------+
+; Processors                 ; Number      ;
++----------------------------+-------------+
+; Number detected on machine ; 12          ;
+; Maximum allowed            ; 6           ;
+;                            ;             ;
+; Average used               ; 1.00        ;
+; Maximum used               ; 1           ;
+;                            ;             ;
+; Usage by Processor         ; % Time Used ;
+;     Processor 1            ; 100.0%      ;
++----------------------------+-------------+
+
+
++-------------------------------+
+; Analysis & Synthesis Messages ;
++-------------------------------+
+Info: *******************************************************************
+Info: Running Quartus Prime Analysis & Synthesis
+    Info: Version 24.1std.0 Build 1077 03/04/2025 SC Lite Edition
+    Info: Processing started: Sat Jun 13 07:13:58 2026
+Info: Command: quartus_map --read_settings_files=on --write_settings_files=off rv_rbm_soc -c tb_rv_tiny_attn_rbm_soc_full
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (20030): Parallel compilation is enabled and will use 6 of the 6 processors detected
+Info (12021): Found 1 design units, including 1 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv
+    Info (12023): Found entity 1: tb_rv_tiny_attn_rbm_soc_full File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 3
+Info (12021): Found 1 design units, including 1 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picosoc/simpleuart.v
+    Info (12023): Found entity 1: simpleuart File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picosoc/simpleuart.v Line: 20
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(331) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 331
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(402) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 402
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1119) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1119
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1251) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1251
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1251) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1251
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1268) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1268
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1268) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1268
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1314) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1314
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1485) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1485
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1485) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1485
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1497) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1497
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1583) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1583
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1627) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1627
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1627) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1627
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1735) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1735
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1766) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1766
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1836) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1836
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1836) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1836
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1844) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1844
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1844) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1844
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1859) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1859
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1859) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1859
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1884) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1884
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1884) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1884
+Warning (10335): Unrecognized synthesis attribute "parallel_case" at ../../../../picorv32/picorv32.v(1901) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1901
+Warning (10335): Unrecognized synthesis attribute "full_case" at ../../../../picorv32/picorv32.v(1901) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1901
+Info (12021): Found 8 design units, including 8 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v
+    Info (12023): Found entity 1: picorv32 File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 62
+    Info (12023): Found entity 2: picorv32_regs File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2174
+    Info (12023): Found entity 3: picorv32_pcpi_mul File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2197
+    Info (12023): Found entity 4: picorv32_pcpi_fast_mul File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2318
+    Info (12023): Found entity 5: picorv32_pcpi_div File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2420
+    Info (12023): Found entity 6: picorv32_axi File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2517
+    Info (12023): Found entity 7: picorv32_axi_adapter File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2731
+    Info (12023): Found entity 8: picorv32_wb File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2815
+Info (12021): Found 2 design units, including 2 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv
+    Info (12023): Found entity 1: rv_rbm_soc File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 5
+    Info (12023): Found entity 2: rv_word_ram File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 407
+Info (12021): Found 1 design units, including 1 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_top_axi.sv
+    Info (12023): Found entity 1: tiny_attn_top_axi File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_top_axi.sv Line: 2
+Info (12021): Found 1 design units, including 1 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_core.sv
+    Info (12023): Found entity 1: tiny_attn_core File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_core.sv Line: 2
+Info (12021): Found 1 design units, including 1 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_axil_bridge.sv
+    Info (12023): Found entity 1: rbm_axil_bridge File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_axil_bridge.sv Line: 1
+Info (12021): Found 2 design units, including 2 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv
+    Info (12023): Found entity 1: rbm_cd1_top_axi File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 2
+    Info (12023): Found entity 2: rbm_sdp_ram File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 690
+Info (12021): Found 1 design units, including 1 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_ctrl_axi_lite3.sv
+    Info (12023): Found entity 1: rbm_ctrl_axi_lite File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_ctrl_axi_lite3.sv Line: 2
+Info (12021): Found 1 design units, including 1 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/sigmoid.sv
+    Info (12023): Found entity 1: sigmoid_lut File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/sigmoid.sv Line: 1
+Info (12021): Found 1 design units, including 1 entities, in source file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/lfsr16.sv
+    Info (12023): Found entity 1: lfsr16 File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/lfsr16.sv Line: 1
+Info (12127): Elaborating entity "tb_rv_tiny_attn_rbm_soc_full" for the top level hierarchy
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(16): object "saw_tiny_hw_version_read" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 16
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(17): object "saw_rbm_hw_version_read" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 17
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(18): object "tiny_start_count" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 18
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(19): object "saw_tiny_done" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 19
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(20): object "saw_tiny_train" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 20
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(21): object "saw_tiny_adapt_write" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 21
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(22): object "saw_rbm_start" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 22
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(23): object "saw_rbm_irq" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 23
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(24): object "prev_rbm_done" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 24
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(25): object "prev_tiny_done" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 25
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(26): object "prev_fw_stage" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 26
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(27): object "prev_fw_rc" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 27
+Warning (10036): Verilog HDL or VHDL warning at tb_rv_tiny_attn_rbm_soc_full.sv(28): object "rbm_done_count" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 28
+Info (12128): Elaborating entity "rv_rbm_soc" for hierarchy "rv_rbm_soc:dut" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tb_rv_tiny_attn_rbm_soc_full.sv Line: 72
+Warning (10036): Verilog HDL or VHDL warning at rv_rbm_soc.sv(404): object "unused_ok" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 404
+Info (12128): Elaborating entity "picorv32" for hierarchy "rv_rbm_soc:dut|picorv32:u_cpu" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 94
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(181): object "dbg_insn_addr" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 181
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(183): object "dbg_mem_valid" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 183
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(184): object "dbg_mem_instr" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 184
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(185): object "dbg_mem_ready" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 185
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(186): object "dbg_mem_addr" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 186
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(187): object "dbg_mem_wdata" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 187
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(188): object "dbg_mem_wstrb" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 188
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(189): object "dbg_mem_rdata" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 189
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(375): object "mem_busy" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 375
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(696): object "dbg_rs1val" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 696
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(697): object "dbg_rs2val" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 697
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(698): object "dbg_rs1val_valid" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 698
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(699): object "dbg_rs2val_valid" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 699
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(769): object "dbg_valid_insn" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 769
+Warning (10036): Verilog HDL or VHDL warning at picorv32.v(1184): object "dbg_ascii_state" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1184
+Warning (10763): Verilog HDL warning at picorv32.v(332): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 332
+Warning (10270): Verilog HDL Case Statement warning at picorv32.v(332): incomplete case statement has no default case item File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 332
+Warning (10230): Verilog HDL assignment warning at picorv32.v(617): truncated value with size 32 to match size of target (2) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 617
+Warning (10230): Verilog HDL assignment warning at picorv32.v(799): truncated value with size 6 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 799
+Warning (10230): Verilog HDL assignment warning at picorv32.v(801): truncated value with size 6 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 801
+Warning (10230): Verilog HDL assignment warning at picorv32.v(832): truncated value with size 6 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 832
+Warning (10230): Verilog HDL assignment warning at picorv32.v(834): truncated value with size 6 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 834
+Warning (10230): Verilog HDL assignment warning at picorv32.v(890): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 890
+Warning (10230): Verilog HDL assignment warning at picorv32.v(908): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 908
+Warning (10230): Verilog HDL assignment warning at picorv32.v(912): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 912
+Warning (10230): Verilog HDL assignment warning at picorv32.v(913): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 913
+Warning (10230): Verilog HDL assignment warning at picorv32.v(917): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 917
+Warning (10230): Verilog HDL assignment warning at picorv32.v(918): truncated value with size 32 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 918
+Warning (10230): Verilog HDL assignment warning at picorv32.v(954): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 954
+Warning (10230): Verilog HDL assignment warning at picorv32.v(955): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 955
+Warning (10230): Verilog HDL assignment warning at picorv32.v(956): truncated value with size 6 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 956
+Warning (10230): Verilog HDL assignment warning at picorv32.v(960): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 960
+Warning (10230): Verilog HDL assignment warning at picorv32.v(961): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 961
+Warning (10230): Verilog HDL assignment warning at picorv32.v(965): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 965
+Warning (10230): Verilog HDL assignment warning at picorv32.v(966): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 966
+Warning (10230): Verilog HDL assignment warning at picorv32.v(967): truncated value with size 32 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 967
+Warning (10230): Verilog HDL assignment warning at picorv32.v(975): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 975
+Warning (10230): Verilog HDL assignment warning at picorv32.v(980): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 980
+Warning (10230): Verilog HDL assignment warning at picorv32.v(992): truncated value with size 6 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 992
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1245): truncated value with size 33 to match size of target (32) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1245
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1250): truncated value with size 32 to match size of target (1) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1250
+Warning (10763): Verilog HDL warning at picorv32.v(1252): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1252
+Warning (10208): Verilog HDL Case Statement warning at picorv32.v(1252): honored full_case synthesis attribute - differences between design synthesis and simulation may occur File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1252
+Warning (10763): Verilog HDL warning at picorv32.v(1269): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1269
+Warning (10208): Verilog HDL Case Statement warning at picorv32.v(1269): honored full_case synthesis attribute - differences between design synthesis and simulation may occur File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1269
+Warning (10763): Verilog HDL warning at picorv32.v(1315): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1315
+Warning (10270): Verilog HDL Case Statement warning at picorv32.v(1315): incomplete case statement has no default case item File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1315
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1349): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1349
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1404): truncated value with size 32 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1404
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1426): truncated value with size 32 to match size of target (4) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1426
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1428): truncated value with size 32 to match size of target (4) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1428
+Warning (10763): Verilog HDL warning at picorv32.v(1498): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1498
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1544): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1544
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1594): truncated value with size 32 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1594
+Warning (10763): Verilog HDL warning at picorv32.v(1628): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1628
+Warning (10208): Verilog HDL Case Statement warning at picorv32.v(1628): honored full_case synthesis attribute - differences between design synthesis and simulation may occur File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1628
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1663): truncated value with size 32 to match size of target (6) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1663
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1731): truncated value with size 32 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1731
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1761): truncated value with size 32 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1761
+Warning (10763): Verilog HDL warning at picorv32.v(1837): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1837
+Warning (10208): Verilog HDL Case Statement warning at picorv32.v(1837): honored full_case synthesis attribute - differences between design synthesis and simulation may occur File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1837
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1842): truncated value with size 32 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1842
+Warning (10763): Verilog HDL warning at picorv32.v(1845): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1845
+Warning (10208): Verilog HDL Case Statement warning at picorv32.v(1845): honored full_case synthesis attribute - differences between design synthesis and simulation may occur File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1845
+Warning (10230): Verilog HDL assignment warning at picorv32.v(1850): truncated value with size 32 to match size of target (5) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1850
+Warning (10763): Verilog HDL warning at picorv32.v(1860): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1860
+Warning (10208): Verilog HDL Case Statement warning at picorv32.v(1860): honored full_case synthesis attribute - differences between design synthesis and simulation may occur File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1860
+Warning (10763): Verilog HDL warning at picorv32.v(1885): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1885
+Warning (10208): Verilog HDL Case Statement warning at picorv32.v(1885): honored full_case synthesis attribute - differences between design synthesis and simulation may occur File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1885
+Warning (10763): Verilog HDL warning at picorv32.v(1902): case statement has overlapping case item expressions with non-constant or don't care bits - unable to check case statement for completeness File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1902
+Warning (10208): Verilog HDL Case Statement warning at picorv32.v(1902): honored full_case synthesis attribute - differences between design synthesis and simulation may occur File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1902
+Info (12128): Elaborating entity "picorv32_pcpi_mul" for hierarchy "rv_rbm_soc:dut|picorv32:u_cpu|picorv32_pcpi_mul:pcpi_mul" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 297
+Warning (10230): Verilog HDL assignment warning at picorv32.v(2291): truncated value with size 32 to match size of target (7) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2291
+Warning (10230): Verilog HDL assignment warning at picorv32.v(2299): truncated value with size 32 to match size of target (7) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2299
+Warning (10230): Verilog HDL assignment warning at picorv32.v(2313): truncated value with size 64 to match size of target (32) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2313
+Info (12128): Elaborating entity "picorv32_pcpi_div" for hierarchy "rv_rbm_soc:dut|picorv32:u_cpu|picorv32_pcpi_div:pcpi_div" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 317
+Warning (10259): Verilog HDL error at picorv32.v(2478): constant value overflow File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2478
+Warning (10230): Verilog HDL assignment warning at picorv32.v(2499): truncated value with size 63 to match size of target (32) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2499
+Info (12128): Elaborating entity "rv_word_ram" for hierarchy "rv_rbm_soc:dut|rv_word_ram:u_ram" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 140
+Info (12128): Elaborating entity "simpleuart" for hierarchy "rv_rbm_soc:dut|simpleuart:u_uart" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 175
+Warning (10230): Verilog HDL assignment warning at simpleuart.v(99): truncated value with size 32 to match size of target (4) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picosoc/simpleuart.v Line: 99
+Warning (10230): Verilog HDL assignment warning at simpleuart.v(114): truncated value with size 32 to match size of target (10) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picosoc/simpleuart.v Line: 114
+Warning (10230): Verilog HDL assignment warning at simpleuart.v(120): truncated value with size 32 to match size of target (10) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picosoc/simpleuart.v Line: 120
+Warning (10230): Verilog HDL assignment warning at simpleuart.v(132): truncated value with size 32 to match size of target (4) File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picosoc/simpleuart.v Line: 132
+Info (12128): Elaborating entity "rbm_axil_bridge" for hierarchy "rv_rbm_soc:dut|rbm_axil_bridge:u_rbm_bridge" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 288
+Warning (10036): Verilog HDL or VHDL warning at rbm_axil_bridge.sv(116): object "unused_ok" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_axil_bridge.sv Line: 116
+Info (12128): Elaborating entity "rbm_cd1_top_axi" for hierarchy "rv_rbm_soc:dut|rbm_cd1_top_axi:u_rbm" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 315
+Warning (10230): Verilog HDL assignment warning at rbm_cd1_top_axi.sv(30): truncated value with size 32 to match size of target (16) File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 30
+Warning (10230): Verilog HDL assignment warning at rbm_cd1_top_axi.sv(31): truncated value with size 32 to match size of target (16) File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 31
+Warning (10036): Verilog HDL or VHDL warning at rbm_cd1_top_axi.sv(207): object "h0s_mul_q" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 207
+Info (12128): Elaborating entity "rbm_sdp_ram" for hierarchy "rv_rbm_soc:dut|rbm_cd1_top_axi:u_rbm|rbm_sdp_ram:u_w_mem" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 98
+Info (12128): Elaborating entity "lfsr16" for hierarchy "rv_rbm_soc:dut|rbm_cd1_top_axi:u_rbm|lfsr16:u_rng" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 120
+Info (12128): Elaborating entity "sigmoid_lut" for hierarchy "rv_rbm_soc:dut|rbm_cd1_top_axi:u_rbm|sigmoid_lut:u_sig" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 129
+Warning (10230): Verilog HDL assignment warning at sigmoid.sv(18): truncated value with size 32 to match size of target (16) File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/sigmoid.sv Line: 18
+Warning (10030): Net "rom.data_a" at sigmoid.sv(22) has no driver or initial value, using a default initial value '0' File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/sigmoid.sv Line: 22
+Warning (10030): Net "rom.waddr_a" at sigmoid.sv(22) has no driver or initial value, using a default initial value '0' File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/sigmoid.sv Line: 22
+Warning (10030): Net "rom.we_a" at sigmoid.sv(22) has no driver or initial value, using a default initial value '0' File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/sigmoid.sv Line: 22
+Info (12128): Elaborating entity "rbm_ctrl_axi_lite" for hierarchy "rv_rbm_soc:dut|rbm_cd1_top_axi:u_rbm|rbm_ctrl_axi_lite:u_ctrl" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 157
+Warning (10036): Verilog HDL or VHDL warning at rbm_ctrl_axi_lite3.sv(122): object "awaddr_latched" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_ctrl_axi_lite3.sv Line: 122
+Warning (10036): Verilog HDL or VHDL warning at rbm_ctrl_axi_lite3.sv(122): object "araddr_latched" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_ctrl_axi_lite3.sv Line: 122
+Info (12128): Elaborating entity "tiny_attn_top_axi" for hierarchy "rv_rbm_soc:dut|tiny_attn_top_axi:u_attn" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rv_rbm_soc.sv Line: 372
+Warning (10036): Verilog HDL or VHDL warning at tiny_attn_top_axi.sv(90): object "unused_bases" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_top_axi.sv Line: 90
+Info (12128): Elaborating entity "tiny_attn_core" for hierarchy "rv_rbm_soc:dut|tiny_attn_top_axi:u_attn|tiny_attn_core:u_core" File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_top_axi.sv Line: 120
+Warning (10230): Verilog HDL assignment warning at tiny_attn_core.sv(31): truncated value with size 32 to match size of target (16) File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_core.sv Line: 31
+Warning (10230): Verilog HDL assignment warning at tiny_attn_core.sv(32): truncated value with size 32 to match size of target (16) File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_core.sv Line: 32
+Warning (10036): Verilog HDL or VHDL warning at tiny_attn_core.sv(93): object "bp_dweight" assigned a value but never read File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_core.sv Line: 93
+Info (10264): Verilog HDL Case Statement information at tiny_attn_core.sv(197): all case item expressions in this case statement are onehot File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_core.sv Line: 197
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "token_mem" into its bus
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "wq_mem" into its bus
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "wk_mem" into its bus
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "wv_mem" into its bus
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "wo_mem" into its bus
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "out_mem" into its bus
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "target_mem" into its bus
+Info (10008): Verilog HDL or VHDL information: EDA Netlist Writer cannot regroup multidimensional array "attn_mat" into its bus
+Error (12006): Node instance "u_ctrl" instantiates undefined entity "tiny_attn_ctrl_axi". Ensure that required library paths are specified correctly, define the specified entity, or change the instantiation. If this entity represents Intel FPGA or third-party IP, generate the synthesis files for the IP. File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/tiny_attn_top_axi.sv Line: 88
+Info (144001): Generated suppressed messages file /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/quartus_soc/output_files/tb_rv_tiny_attn_rbm_soc_full.map.smsg
+Error: Quartus Prime Analysis & Synthesis was unsuccessful. 1 error, 135 warnings
+    Error: Peak virtual memory: 1376 megabytes
+    Error: Processing ended: Sat Jun 13 07:14:16 2026
+    Error: Elapsed time: 00:00:18
+    Error: Total CPU time (on all processors): 00:00:27
+
+
++------------------------------------------+
+; Analysis & Synthesis Suppressed Messages ;
++------------------------------------------+
+The suppressed messages can be found in /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/quartus_soc/output_files/tb_rv_tiny_attn_rbm_soc_full.map.smsg.
+
+

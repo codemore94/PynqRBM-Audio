@@ -1,0 +1,25 @@
+Warning (10273): Verilog HDL warning at picorv32.v(300): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 300
+Warning (10273): Verilog HDL warning at picorv32.v(320): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 320
+Warning (10273): Verilog HDL warning at picorv32.v(327): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 327
+Warning (10273): Verilog HDL warning at picorv32.v(386): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 386
+Warning (10273): Verilog HDL warning at picorv32.v(388): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 388
+Warning (10273): Verilog HDL warning at picorv32.v(1038): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1038
+Warning (10273): Verilog HDL warning at picorv32.v(1250): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1250
+Warning (10273): Verilog HDL warning at picorv32.v(1267): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1267
+Warning (10273): Verilog HDL warning at picorv32.v(1311): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1311
+Warning (10273): Verilog HDL warning at picorv32.v(1349): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1349
+Warning (10273): Verilog HDL warning at picorv32.v(1404): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1404
+Warning (10273): Verilog HDL warning at picorv32.v(1405): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1405
+Warning (10273): Verilog HDL warning at picorv32.v(1417): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1417
+Warning (10273): Verilog HDL warning at picorv32.v(1418): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1418
+Warning (10273): Verilog HDL warning at picorv32.v(1436): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1436
+Warning (10273): Verilog HDL warning at picorv32.v(1437): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1437
+Warning (10273): Verilog HDL warning at picorv32.v(1440): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1440
+Warning (10273): Verilog HDL warning at picorv32.v(1455): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1455
+Warning (10273): Verilog HDL warning at picorv32.v(1580): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1580
+Warning (10273): Verilog HDL warning at picorv32.v(1581): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1581
+Warning (10273): Verilog HDL warning at picorv32.v(1974): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1974
+Warning (10268): Verilog HDL information at picorv32.v(1402): always construct contains both blocking and non-blocking assignments File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 1402
+Warning (10273): Verilog HDL warning at picorv32.v(2467): extended using "x" or "z" File: /home/MIKKO_USER/PA/PynqRBM-Audio/picorv32/picorv32.v Line: 2467
+Info (10281): Verilog HDL Declaration information at rbm_cd1_top_axi.sv(3): object "I_DIM" differs only in case from object "i_dim" in the same scope File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 3
+Info (10281): Verilog HDL Declaration information at rbm_cd1_top_axi.sv(5): object "H_DIM" differs only in case from object "h_dim" in the same scope File: /home/MIKKO_USER/PA/PynqRBM-Audio/fpga/rtl/compilable/rbm_cd1_top_axi.sv Line: 5
