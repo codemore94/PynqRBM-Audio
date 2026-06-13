@@ -3,7 +3,7 @@ location: fpga/rtl/compilable
 
 Currently with heavily using OpenAI Codex 5.5 high Plus I have achieved better design with utilizing the BRAM and DSP instead direct LUTs and FFs in Pynq. The current
 problem is that after running implementation tools (routing, floorplanning etc) there is a terrible power consumption meaning that whole FPGA will burn in some
-microseconds if a bitstream will be programmed. So as a feedback and the correction of error the implementation report should be utilized and the design redesigned
+microseconds if a bitstream will be programmed.(Actually it won't since the regulators of board do not allow such voltage/currents, it is just statistical estimation of Vivado) So as a feedback and the correction of error the implementation report should be utilized and the design redesigned
 a bit more sensible from a physical viewpoint. 
 
 
