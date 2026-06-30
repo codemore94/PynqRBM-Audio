@@ -467,7 +467,6 @@ module rv_word_ram #(
   logic [31:0] mem [0:DEPTH-1];
 
   initial begin
-    rdata = 32'b0;
 `ifdef SYNTHESIS
     $readmemh(INIT_FILE, mem);
 `else

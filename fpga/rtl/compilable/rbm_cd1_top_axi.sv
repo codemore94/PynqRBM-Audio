@@ -233,7 +233,6 @@ module rbm_cd1_top_axi #(
   integer init_i;
 
   initial begin
-    mem_rdata = 32'b0;
     for (init_i = 0; init_i < I_DIM; init_i = init_i + 1) begin
       v0[init_i] = 8'sd0;
       v1[init_i] = 8'sd0;
@@ -703,7 +702,6 @@ module rbm_sdp_ram #(
   integer init_idx;
 
   initial begin
-    rd_data = '0;
     for (init_idx = 0; init_idx < DEPTH; init_idx = init_idx + 1)
       mem[init_idx] = '0;
   end
