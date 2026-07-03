@@ -178,22 +178,25 @@ module tiny_attn_core #(
 
   // Matrix storage is cleared once at configuration, not by reset, so the
   // arrays are eligible for RAM inference (no reset fanout, no output FFs).
+  // Local loop variables: i/j belong to the always_ff process and may not
+  // have a second procedural driver.
   initial begin
-    for (i = 0; i < MAX_SEQ_LEN; i = i + 1) begin
-      for (j = 0; j < MAX_D_MODEL; j = j + 1) begin
-        token_mem[i][j] = '0;
-        out_mem[i][j] = '0;
-        target_mem[i][j] = '0;
+    integer ii, jj;
+    for (ii = 0; ii < MAX_SEQ_LEN; ii = ii + 1) begin
+      for (jj = 0; jj < MAX_D_MODEL; jj = jj + 1) begin
+        token_mem[ii][jj] = '0;
+        out_mem[ii][jj] = '0;
+        target_mem[ii][jj] = '0;
       end
-      for (j = 0; j < MAX_SEQ_LEN; j = j + 1)
-        attn_mat[i][j] = '0;
+      for (jj = 0; jj < MAX_SEQ_LEN; jj = jj + 1)
+        attn_mat[ii][jj] = '0;
     end
-    for (i = 0; i < MAX_D_MODEL; i = i + 1) begin
-      for (j = 0; j < MAX_D_MODEL; j = j + 1) begin
-        wq_mem[i][j] = '0;
-        wk_mem[i][j] = '0;
-        wv_mem[i][j] = '0;
-        wo_mem[i][j] = '0;
+    for (ii = 0; ii < MAX_D_MODEL; ii = ii + 1) begin
+      for (jj = 0; jj < MAX_D_MODEL; jj = jj + 1) begin
+        wq_mem[ii][jj] = '0;
+        wk_mem[ii][jj] = '0;
+        wv_mem[ii][jj] = '0;
+        wo_mem[ii][jj] = '0;
       end
     end
   end

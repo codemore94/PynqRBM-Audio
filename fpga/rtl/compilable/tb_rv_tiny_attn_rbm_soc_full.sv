@@ -28,9 +28,9 @@ module tb_rv_tiny_attn_rbm_soc_full;
   integer rbm_done_count = 0;
 
 `ifdef SYNTHESIS
-  localparam FW_HEX_PATH = "../sw/rv_soc_fw.hex";
+  localparam FW_HEX_PATH = "../sw/rv_soc_full_fw.hex";
 `else
-  localparam FW_HEX_PATH = "sw/rv_soc_fw.hex";
+  localparam FW_HEX_PATH = "sw/rv_soc_full_fw.hex";
 `endif
 
   rv_rbm_soc #(

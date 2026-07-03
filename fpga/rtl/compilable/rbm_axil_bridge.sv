@@ -57,7 +57,10 @@ module rbm_axil_bridge (
 
       case (st)
         ST_IDLE: begin
-          if (req_valid) begin
+          // req_valid is level-derived from the CPU address decode and is
+          // still high during the req_done cycle; without the !req_done
+          // qualifier every transaction is re-issued once as a duplicate.
+          if (req_valid && !req_done) begin
             if (req_write) begin
               m_awaddr <= req_addr;
               m_wdata <= req_wdata;

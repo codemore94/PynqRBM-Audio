@@ -147,8 +147,18 @@ module rv_rbm_soc #(
       trace_fw_stage <= 32'b0;
       trace_fw_rc <= 32'b0;
     end else begin
-      ram_sel_d <= ram_sel;
-      ram_ready <= ram_sel_d;
+      // One-shot handshake: ready pulses exactly one cycle per request.
+      // A plain delayed copy of ram_sel keeps ready high for two cycles
+      // after the handshake, and picorv32's minimum request turnaround is
+      // short enough to catch that stale ready and complete with the
+      // previous transaction's data (corrupting instruction fetches).
+      if (ram_ready) begin
+        ram_ready <= 1'b0;
+        ram_sel_d <= 1'b0;
+      end else begin
+        ram_sel_d <= ram_sel && !ram_sel_d;
+        ram_ready <= ram_sel_d;
+      end
       ram_rdata <= ram_q;
       if (ram_sel && |mem_wstrb && mem_addr == 32'h0000_3f00)
         trace_fw_stage <= merge_wstrb(trace_fw_stage, mem_wdata, mem_wstrb);
