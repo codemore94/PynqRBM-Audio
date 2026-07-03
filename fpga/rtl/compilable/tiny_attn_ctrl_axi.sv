@@ -158,7 +158,11 @@ module tiny_attn_ctrl_axi #(
       REG_STATUS <= {29'b0, stat_err, stat_done, stat_busy};
       REG_INT_ST <= {30'b0, err_irq, done_irq};
 
-      if (S_AWVALID && S_WVALID && !S_BVALID) begin
+      // Ready drops while the response is outstanding (AXI compliance for
+      // pipelined masters); see rbm_ctrl_axi_lite3.sv for details.
+      if (S_AWVALID && S_WVALID && S_AWREADY && !S_BVALID) begin
+        S_AWREADY <= 1'b0;
+        S_WREADY  <= 1'b0;
         S_BVALID <= 1'b1;
         case (S_AWADDR[ADDR_W-1:2])
           6'h00: REG_CONTROL <= apply_wstrb(REG_CONTROL, S_WDATA, S_WSTRB);
@@ -185,9 +189,12 @@ module tiny_attn_ctrl_axi #(
         endcase
       end else if (S_BVALID && S_BREADY) begin
         S_BVALID <= 1'b0;
+        S_AWREADY <= 1'b1;
+        S_WREADY  <= 1'b1;
       end
 
-      if (S_ARVALID && !S_RVALID) begin
+      if (S_ARVALID && S_ARREADY && !S_RVALID) begin
+        S_ARREADY <= 1'b0;
         S_RVALID <= 1'b1;
         case (S_ARADDR[ADDR_W-1:2])
           6'h00: S_RDATA <= REG_CONTROL;
@@ -218,6 +225,7 @@ module tiny_attn_ctrl_axi #(
         endcase
       end else if (S_RVALID && S_RREADY) begin
         S_RVALID <= 1'b0;
+        S_ARREADY <= 1'b1;
       end
     end
   end

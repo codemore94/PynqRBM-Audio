@@ -1,7 +1,10 @@
 module sigmoid_lut #(
   parameter IN_W = 16, // e.g., Q6.10
   parameter OUT_W = 16,
-  parameter ADDR_W = 10 // 1024 entries
+  parameter ADDR_W = 10, // 1024 entries
+  // Overridable so build flows can pass an absolute path; the default
+  // relative name only resolves when the tool runs from this directory.
+  parameter MEM_FILE = "sigmoid_q6p10_q0p16.mem"
 )(
   input  logic               clk,
   input  logic [IN_W-1:0]    x,
@@ -18,8 +21,8 @@ module sigmoid_lut #(
     x_u = x_s + (1 << (IN_W-1));
     addr = x_u[IN_W-1 -: ADDR_W];
   end
-  // ROM init from .mem file
-  logic [OUT_W-1:0] rom [0:(1<<ADDR_W)-1];
-  initial $readmemh("sigmoid_q6p10_q0p16.mem", rom);
+  // ROM init from .mem file; synchronous read infers block ROM.
+  (* romstyle = "M10K", rom_style = "block" *) logic [OUT_W-1:0] rom [0:(1<<ADDR_W)-1];
+  initial $readmemh(MEM_FILE, rom);
   always_ff @(posedge clk) y <= rom[addr];
 endmodule

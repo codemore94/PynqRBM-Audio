@@ -291,6 +291,9 @@ module rbm_cd1_top_axi #(
     active_h_dim = (h_dim == 16'd0 || h_dim > H_DIM_U16) ? H_DIM_U16 : h_dim;
   end
 
+  // Update-path products, state-gated (operand isolation): each group of
+  // multiplies is only fed live operands in the single state that consumes
+  // its result, so the multiplier trees stay quiet the rest of the time.
   always_comb begin
     v0_mul_q   = {v0[i_idx][7], v0[i_idx]};
     v1_mul_q   = {v1[i_idx][7], v1[i_idx]};
@@ -302,35 +305,60 @@ module rbm_cd1_top_axi #(
     mom_q      = {1'b0, mom};
     wd_q       = {1'b0, wd};
 
-    pos_term   = v0_mul_q * h0_prob_q;
-    neg_term   = v1_mul_q * h1_prob_q;
-    delta_term = pos_term - neg_term;
-    scaled_term = delta_term * lr_q;
+    pos_term    = '0;
+    neg_term    = '0;
+    delta_term  = '0;
+    scaled_term = '0;
+    diff_vis    = '0;
+    scaled_vis  = '0;
+    diff_hid    = '0;
+    scaled_hid  = '0;
+    dw_base     = '0;
+    dbv_base    = '0;
+    dbh_base    = '0;
+    mom_w_mul   = '0;
+    mom_bv_mul  = '0;
+    mom_bh_mul  = '0;
+    wd_w_mul    = '0;
+    mom_w_term  = '0;
+    mom_bv_term = '0;
+    mom_bh_term = '0;
+    wd_w_term   = '0;
+    dw_update   = '0;
+    dbv_update  = '0;
+    dbh_update  = '0;
 
-    diff_vis   = v0_mul_q - v1_mul_q;
-    scaled_vis = diff_vis * lr_q;
+    if (st == ST_UPD_W) begin
+      pos_term   = v0_mul_q * h0_prob_q;
+      neg_term   = v1_mul_q * h1_prob_q;
+      delta_term = pos_term - neg_term;
+      scaled_term = delta_term * lr_q;
+      // Original scaling preserved, but narrowed explicitly
+      dw_base    = sat16($signed(scaled_term >>> 24)); // >>>16 then >>>8
+      mom_w_mul  = mom_q * prev_dw_q;
+      wd_w_mul   = wd_q  * w_q;
+      mom_w_term = sat16($signed(mom_w_mul >>> 16));
+      wd_w_term  = sat16($signed(wd_w_mul  >>> 16));
+      dw_update  = sat16($signed(dw_base) + $signed(mom_w_term) - $signed(wd_w_term));
+    end
 
-    diff_hid   = h0_prob_q - h1_prob_q;
-    scaled_hid = diff_hid * lr_q;
+    if (st == ST_UPD_BVIS) begin
+      diff_vis    = v0_mul_q - v1_mul_q;
+      scaled_vis  = diff_vis * lr_q;
+      dbv_base    = sat16($signed(scaled_vis >>> 8));
+      mom_bv_mul  = mom_q * prev_dbv[i_idx];
+      mom_bv_term = sat16($signed(mom_bv_mul >>> 16));
+      dbv_update  = sat16($signed(dbv_base) + $signed(mom_bv_term));
+    end
 
-    // Original scaling preserved, but narrowed explicitly
-    dw_base   = sat16($signed(scaled_term >>> 24)); // >>>16 then >>>8
-    dbv_base  = sat16($signed(scaled_vis  >>> 8));
-    dbh_base  = sat16($signed(scaled_hid  >>> 17));
-
-    mom_w_mul   = mom_q * prev_dw_q;
-    mom_bv_mul  = mom_q * prev_dbv[i_idx];
-    mom_bh_mul  = mom_q * prev_dbh[h_idx];
-    wd_w_mul    = wd_q  * w_q;
-
-    mom_w_term  = sat16($signed(mom_w_mul  >>> 16));
-    mom_bv_term = sat16($signed(mom_bv_mul >>> 16));
-    mom_bh_term = sat16($signed(mom_bh_mul >>> 16));
-    wd_w_term   = sat16($signed(wd_w_mul   >>> 16));
-
-    dw_update   = sat16($signed(dw_base)  + $signed(mom_w_term)  - $signed(wd_w_term));
-    dbv_update  = sat16($signed(dbv_base) + $signed(mom_bv_term));
-    dbh_update  = sat16($signed(dbh_base) + $signed(mom_bh_term));
+    if (st == ST_UPD_BHID) begin
+      diff_hid    = h0_prob_q - h1_prob_q;
+      scaled_hid  = diff_hid * lr_q;
+      dbh_base    = sat16($signed(scaled_hid >>> 17));
+      mom_bh_mul  = mom_q * prev_dbh[h_idx];
+      mom_bh_term = sat16($signed(mom_bh_mul >>> 16));
+      dbh_update  = sat16($signed(dbh_base) + $signed(mom_bh_term));
+    end
   end
 
   always_comb begin
@@ -698,7 +726,8 @@ module rbm_sdp_ram #(
   input  logic signed [DATA_W-1:0] wr_data,
   output logic signed [DATA_W-1:0] rd_data
 );
-  (* ramstyle = "M10K" *) logic signed [DATA_W-1:0] mem [0:DEPTH-1];
+  // ramstyle targets Quartus (M10K), ram_style targets Vivado (BRAM).
+  (* ramstyle = "M10K", ram_style = "block" *) logic signed [DATA_W-1:0] mem [0:DEPTH-1];
   integer init_idx;
 
   initial begin

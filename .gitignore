@@ -1,0 +1,22 @@
+# Editor droppings
+*~
+.*.swp
+.*.swo
+
+# Simulation outputs
+*.vcd
+simv
+simv_*
+obj_dir/
+
+# Vivado
+fpga/bd/impl_out/
+fpga/bd/pynq_rbm_audio/
+*.jou
+vivado*.log
+.Xil/
+
+# Quartus build products
+**/quartus_soc/db/
+**/quartus_soc/incremental_db/
+**/quartus_soc/output_files/

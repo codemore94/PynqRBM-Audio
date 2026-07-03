@@ -39,7 +39,8 @@
 
 set_global_assignment -name FAMILY "Cyclone V"
 set_global_assignment -name DEVICE 5CGXFC7C7F23C8
-set_global_assignment -name TOP_LEVEL_ENTITY tb_rv_tiny_attn_rbm_soc_full
+# Testbenches are not synthesizable; synthesize the SoC top instead.
+set_global_assignment -name TOP_LEVEL_ENTITY rv_rbm_soc
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 24.1STD.0
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "12:09:57  JUNE 12, 2026"
 set_global_assignment -name LAST_QUARTUS_VERSION "24.1std.0 Lite Edition"
@@ -51,6 +52,7 @@ set_global_assignment -name EDA_SIMULATION_TOOL "Questa Intel FPGA (Verilog)"
 set_global_assignment -name EDA_TIME_SCALE "1 ps" -section_id eda_simulation
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT "VERILOG HDL" -section_id eda_simulation
 set_global_assignment -name VERILOG_MACRO "SYNTHESIS=1"
+set_global_assignment -name VERILOG_MACRO "QUARTUS_SYNTH=1"
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_timing
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_symbol
 set_global_assignment -name EDA_GENERATE_FUNCTIONAL_NETLIST OFF -section_id eda_board_design_signal_integrity
@@ -60,11 +62,11 @@ set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_RO
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
-set_global_assignment -name SYSTEMVERILOG_FILE ../tb_rv_tiny_attn_rbm_soc_full.sv
 set_global_assignment -name VERILOG_FILE ../../../../picorv32/picosoc/simpleuart.v
 set_global_assignment -name VERILOG_FILE ../../../../picorv32/picorv32.v
 set_global_assignment -name SYSTEMVERILOG_FILE ../rv_rbm_soc.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../tiny_attn_top_axi.sv
+set_global_assignment -name SYSTEMVERILOG_FILE ../tiny_attn_ctrl_axi.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../tiny_attn_core.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../rbm_axil_bridge.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../rbm_cd1_top_axi.sv

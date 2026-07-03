@@ -162,9 +162,13 @@ module rbm_ctrl_axi_lite #(
     end else begin
       mem_wen <= 1'b0;
 
-      // Write channel
-      if (S_AWVALID && S_WVALID && !S_BVALID) begin
+      // Write channel. Ready drops while the write response is outstanding
+      // so a pipelined master (e.g. Zynq PS GP port) cannot have a second
+      // write silently accepted and dropped.
+      if (S_AWVALID && S_WVALID && S_AWREADY && !S_BVALID) begin
         awaddr_latched <= S_AWADDR[ADDR_W-1:0];
+        S_AWREADY <= 1'b0;
+        S_WREADY  <= 1'b0;
         S_BVALID <= 1'b1;
         // decode write
         case (S_AWADDR[ADDR_W-1:2])
@@ -198,11 +202,14 @@ module rbm_ctrl_axi_lite #(
         endcase
       end else if (S_BVALID && S_BREADY) begin
         S_BVALID <= 1'b0;
+        S_AWREADY <= 1'b1;
+        S_WREADY  <= 1'b1;
       end
 
       // Read channel
-      if (S_ARVALID && !S_RVALID) begin
+      if (S_ARVALID && S_ARREADY && !S_RVALID) begin
         araddr_latched <= S_ARADDR[ADDR_W-1:0];
+        S_ARREADY <= 1'b0;
         S_RVALID <= 1'b1;
         case (S_ARADDR[ADDR_W-1:2])
           6'h00: S_RDATA <= REG_CONTROL;
@@ -240,6 +247,7 @@ module rbm_ctrl_axi_lite #(
         endcase
       end else if (S_RVALID && S_RREADY) begin
         S_RVALID <= 1'b0;
+        S_ARREADY <= 1'b1;
       end
     end
   end
