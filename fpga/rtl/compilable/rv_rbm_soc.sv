@@ -3,7 +3,9 @@ module rv_rbm_soc #(
   parameter [31:0]  STACKADDR = 4*MEM_WORDS,
   parameter [31:0]  PROGADDR_RESET = 32'h0000_0000,
   parameter [31:0]  PROGADDR_IRQ = 32'h0000_0010,
-  parameter integer UART_DIV = 100,
+  // Divider for simpleuart: baud = clk / UART_DIV. 25 keeps 1 Mbaud at the
+  // 25 MHz fabric clock (was 100 when the fabric clock was 100 MHz).
+  parameter integer UART_DIV = 25,
   parameter integer RBM_I_DIM = 64,
   parameter integer RBM_H_DIM = 64,
   parameter integer ATTN_MAX_SEQ_LEN = 8,
