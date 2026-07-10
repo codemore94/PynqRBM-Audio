@@ -1,7 +1,3 @@
-`ifndef PICORV32_REGS
-`define PICORV32_REGS rv_rbm_soc_regs
-`endif
-
 module rv_rbm_soc #(
   parameter integer MEM_WORDS = 4096,
   parameter [31:0]  STACKADDR = 4*MEM_WORDS,
